@@ -170,6 +170,39 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_submissions: {
+        Row: {
+          created_at: string
+          email: string | null
+          feedback_type: string
+          id: string
+          message: string
+          page: string | null
+          rating: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          feedback_type?: string
+          id?: string
+          message: string
+          page?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          feedback_type?: string
+          id?: string
+          message?: string
+          page?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       import_batch_rows: {
         Row: {
           batch_id: string
@@ -674,6 +707,63 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_signups: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          email: string
+          group_size: number | null
+          home_airport: string | null
+          id: string
+          max_budget_per_person: number | null
+          name: string | null
+          preferred_destinations: string[] | null
+          priorities: string[] | null
+          referral_code: string | null
+          referred_by: string | null
+          source: string | null
+          status: string
+          trip_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          email: string
+          group_size?: number | null
+          home_airport?: string | null
+          id?: string
+          max_budget_per_person?: number | null
+          name?: string | null
+          preferred_destinations?: string[] | null
+          priorities?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
+          source?: string | null
+          status?: string
+          trip_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          email?: string
+          group_size?: number | null
+          home_airport?: string | null
+          id?: string
+          max_budget_per_person?: number | null
+          name?: string | null
+          preferred_destinations?: string[] | null
+          priorities?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
+          source?: string | null
+          status?: string
+          trip_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       watchlists: {
         Row: {
           created_at: string
@@ -719,6 +809,25 @@ export type Database = {
       join_trip_room_by_code: {
         Args: { _code: string; _display_name?: string }
         Returns: string
+      }
+      submit_waitlist: {
+        Args: {
+          _email: string
+          _group_size?: number
+          _home_airport?: string
+          _max_budget_per_person?: number
+          _name?: string
+          _preferred_destinations?: string[]
+          _priorities?: string[]
+          _referred_by?: string
+          _source?: string
+          _trip_type?: string
+        }
+        Returns: {
+          id: string
+          referral_code: string
+          was_existing: boolean
+        }[]
       }
     }
     Enums: {

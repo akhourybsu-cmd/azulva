@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Compass, Heart, Sparkles, Users, User, Shield, LogIn, LogOut, Bookmark } from "lucide-react";
 import { AzulvaLogo, AzulvaEmblem } from "@/components/Brand";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,10 +116,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <p className="mt-8 text-xs text-muted-foreground">
-            Azulva helps travelers discover and compare vacation deals. Some links may be affiliate links, and prices should be verified with the booking provider before purchase.
+            Azulva helps travelers discover and compare vacation opportunities. Prices, availability, inclusions, and policies should always be verified with the booking provider before purchase. Some outbound links may be affiliate links.
           </p>
         </div>
       </footer>
+      <FeedbackWidget userId={user?.id ?? null} email={user?.email ?? null} />
     </div>
   );
 }
