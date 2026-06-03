@@ -103,7 +103,7 @@ export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
             </div>
 
             <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>Last checked {formatDistanceToNow(new Date(deal.lastCheckedAt), { addSuffix: true })}</span>
+              <span suppressHydrationWarning>Last checked {formatDistanceToNow(new Date(deal.lastCheckedAt), { addSuffix: true })}</span>
             </div>
 
             <div className="mt-4 flex items-center gap-2">
