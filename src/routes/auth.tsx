@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/AppShell";
+import { AzulvaLogo } from "@/components/Brand";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [
@@ -75,6 +76,9 @@ function AuthPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-md py-6">
+        <div className="mb-6 flex justify-center">
+          <AzulvaLogo className="h-10 w-auto" />
+        </div>
         <h1 className="font-display text-2xl font-semibold">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {mode === "forgot"

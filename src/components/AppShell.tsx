@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Compass, Heart, MapPin, Sparkles, Users, User, Shield, LogIn, LogOut } from "lucide-react";
+import { Compass, Heart, Sparkles, Users, User, Shield, LogIn, LogOut } from "lucide-react";
+import { AzulvaLogo, AzulvaEmblem } from "@/components/Brand";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,14 +24,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-8">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[var(--ocean)] to-[var(--coral)] text-primary-foreground shadow-sm">
-              <MapPin className="h-5 w-5" />
-            </div>
-            <div className="leading-tight">
-              <div className="font-display text-lg font-semibold">Azulva</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Beach trips, agreed on together.</div>
-            </div>
+          <Link to="/" className="flex items-center gap-2" aria-label="Azulva home">
+            <AzulvaLogo className="hidden h-8 w-auto md:block" />
+            <span className="flex items-center gap-2 md:hidden">
+              <AzulvaEmblem className="h-8 w-8" />
+              <span className="font-display text-lg font-semibold text-foreground">Azulva</span>
+            </span>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
             {navItems.map(({ to, label, icon: Icon }) => (
@@ -86,8 +85,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="grid gap-6 md:grid-cols-4 text-sm">
             <div>
-              <div className="font-display text-lg">Azulva</div>
-              <p className="mt-2 text-muted-foreground">Find the all-inclusive trip everyone actually agrees on.</p>
+              <AzulvaLogo className="h-7 w-auto" />
+              <p className="mt-3 text-muted-foreground">Find the all-inclusive trip everyone actually agrees on.</p>
             </div>
             <div>
               <div className="font-semibold mb-2">Product</div>
