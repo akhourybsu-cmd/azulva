@@ -105,7 +105,12 @@ export const mockDeals: Deal[] = seeds.map((s) => {
     cancellationNotes: s.refundable === "included" ? "Fully refundable up to 14 days before travel." : "Non-refundable — check with booking partner.",
     allInclusiveConfidence: s.aiConf,
     status: "active",
-    lastCheckedAt: new Date(Date.now() - Math.random() * 86400000 * 3).toISOString(),
+    // Deterministic to avoid SSR/CSR hydration drift; offset derived from id.
+    lastCheckedAt: (() => {
+      let h = 0; for (let i = 0; i < s.id.length; i++) h = (h * 31 + s.id.charCodeAt(i)) >>> 0;
+      const hoursAgo = (h % 60) + 1;
+      return new Date(Date.UTC(2026, 5, 1) - hoursAgo * 3600_000).toISOString();
+    })(),
     aiSummary: s.aiSummary,
     ...score,
   } as Deal;
