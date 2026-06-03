@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import type { ProviderHealth } from "@/lib/api/ProviderTypes";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "Azulva Admin" }] }),
   component: AdminPage,
 });
 
