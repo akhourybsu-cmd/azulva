@@ -142,6 +142,8 @@ function AdminPage() {
     { label: "Outbound Clicks", to: "#clicks" },
     { label: "Affiliate Setup", to: "#affiliate" },
     { label: "Audit Log", to: "#audit" },
+    { label: "Waitlist", to: "#waitlist" },
+    { label: "Feedback", to: "#feedback" },
     { label: "Destinations", to: "#destinations" },
     { label: "Resorts", to: "#resorts" },
     { label: "API Health", to: "#health" },
