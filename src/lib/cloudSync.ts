@@ -95,12 +95,12 @@ export async function loadCloudState(userId: string): Promise<CloudState> {
     savedDealIds: (savedDeals.data ?? []).map((r) => r.deal_id),
     savedDestinationIds: (savedDests.data ?? []).map((r) => r.destination_id),
     watchlists: (watchlists.data ?? []).map((w) => {
-      const d = (w.data as Watchlist) ?? ({} as Watchlist);
+      const d = (w.data as unknown as Watchlist) ?? ({} as Watchlist);
       return { ...d, id: w.id, userId: userId, createdAt: w.created_at };
     }),
     tripRooms,
     votes,
-    customDeals: (customDeals.data ?? []).map((c) => ({ ...(c.data as Deal), id: c.id })),
+    customDeals: (customDeals.data ?? []).map((c) => ({ ...(c.data as unknown as Deal), id: c.id })),
   };
 }
 
