@@ -98,6 +98,10 @@ function AdminPage() {
 
   // Quality queue calculations
   const prodMode = isProductionMode();
+  const refOnlySourceIds = new Set(sources.filter((s) => s.approved_linking_method === "reference_only").map((s) => s.id));
+  const manualVerifySourceIds = new Set(sources.filter((s) => s.requires_manual_verification).map((s) => s.id));
+  const expectsAffiliateSourceIds = new Set(sources.filter((s) => s.affiliate_supported || s.approved_linking_method === "generated_affiliate_url" || s.approved_linking_method === "manual_affiliate_url").map((s) => s.id));
+  const STALE_VERIFY_MS = 7 * 24 * 60 * 60 * 1000;
   const quality = {
     missingAffiliate: deals.filter((d) => d.status !== "expired" && !d.affiliateUrl && !d.generatedAffiliateUrl),
     missingSource: deals.filter((d) => d.status !== "expired" && !d.sourceUrl),
@@ -115,6 +119,14 @@ function AdminPage() {
       return d.status === "active" && (r.state === "missing_critical" || r.state === "needs_review");
     }),
     sampleInProd: prodMode ? deals.filter((d) => d.sourceLabel === "Sample Deal") : [],
+    activeRefOnly: deals.filter((d) => d.status === "active" && d.sourceId && refOnlySourceIds.has(d.sourceId)),
+    activeNeedsManualVerify: deals.filter((d) => {
+      if (d.status !== "active" || !d.sourceId || !manualVerifySourceIds.has(d.sourceId)) return false;
+      const last = d.lastCheckedAt ? new Date(d.lastCheckedAt).getTime() : 0;
+      return !last || Date.now() - last > STALE_VERIFY_MS;
+    }),
+    activeNoOutbound: deals.filter((d) => d.status === "active" && !d.sourceUrl && !d.affiliateUrl && !d.generatedAffiliateUrl),
+    activeAffiliateExpectedButDirect: deals.filter((d) => d.status === "active" && d.sourceUrl && !d.affiliateUrl && !d.generatedAffiliateUrl && d.sourceId && expectsAffiliateSourceIds.has(d.sourceId)),
   };
 
   const sourceLookup = new Map(sources.map((x) => [x.id, x] as const));
@@ -236,6 +248,10 @@ function AdminPage() {
               <QualityList title="Active but not publish-ready" deals={quality.notPublishReady} customIds={s.customDeals.map((d) => d.id)} />
               <QualityList title="Sample / mock deals" deals={quality.sampleDeals} customIds={s.customDeals.map((d) => d.id)} />
               {prodMode && <QualityList title="Sample deals visible in production" deals={quality.sampleInProd} customIds={s.customDeals.map((d) => d.id)} />}
+              <QualityList title="Active · reference-only source" deals={quality.activeRefOnly} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active · needs manual verification (>7d)" deals={quality.activeNeedsManualVerify} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active · no outbound URL" deals={quality.activeNoOutbound} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active · source URL only, affiliate expected" deals={quality.activeAffiliateExpectedButDirect} customIds={s.customDeals.map((d) => d.id)} />
             </div>
           </section>
 
@@ -266,11 +282,18 @@ function AdminPage() {
                   { label: "Signed in", count: analytics.signedInVsAnon.signed_in },
                   { label: "Anonymous", count: analytics.signedInVsAnon.anon },
                 ]} />
+                <ClickBreakdown title="By click surface (clickedFrom)" rows={analytics.byClickedFrom.map((r) => ({ label: r.clicked_from, count: r.count }))} />
               </div>
+            )}
+            {analytics && analytics.total > 0 && (
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                Unknown / "other" attribution: {analytics.unknownAttributionCount} of {analytics.total} ({Math.round((analytics.unknownAttributionCount / analytics.total) * 100)}%).
+              </p>
             )}
           </section>
 
-          <AffiliateSetupPanel deals={deals} sources={sources} onChange={loadAll} />
+          <AffiliateSetupPanel deals={deals} sources={sources} analytics={analytics} onChange={loadAll} />
+
 
           <AuditLogSection audit={audit} />
 
@@ -423,11 +446,12 @@ function SnapshotInline({ deal, onAdded }: { deal: Deal; onAdded: () => void }) 
 
 function DealSourcesPanel({ sources, onChange }: { sources: DealSourceRow[]; onChange: () => void }) {
   const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
         <h2 className="font-display text-xl">Deal Sources</h2>
-        <button onClick={() => setCreating((c) => !c)} className="rounded-full bg-foreground px-3 py-1.5 text-xs text-background">
+        <button onClick={() => { setEditingId(null); setCreating((c) => !c); }} className="rounded-full bg-foreground px-3 py-1.5 text-xs text-background">
           {creating ? "Cancel" : "+ New source"}
         </button>
       </div>
@@ -435,30 +459,56 @@ function DealSourcesPanel({ sources, onChange }: { sources: DealSourceRow[]; onC
       <ul className="mt-3 space-y-2">
         {sources.map((src) => (
           <li key={src.id} className="rounded-lg border border-border p-3 text-sm">
-            <div className="flex items-center justify-between gap-2">
-              <div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
                 <div className="font-medium">{src.name} <span className="text-xs text-muted-foreground">· {src.source_type} · trust {src.trust_level}</span></div>
                 <div className="text-xs text-muted-foreground">
                   {src.affiliate_supported ? "Affiliate-ready · " : ""}
                   {src.api_supported ? "API-ready · " : ""}
+                  {src.requires_manual_verification ? "Manual verification required · " : ""}
+                  {src.approved_linking_method ? `Link: ${src.approved_linking_method} · ` : ""}
                   {src.notes ?? ""}
                 </div>
+                {src.default_disclaimer && (
+                  <div className="mt-1 text-[11px] italic text-muted-foreground">“{src.default_disclaimer}”</div>
+                )}
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <label className="inline-flex items-center gap-1">
                   <input
                     type="checkbox"
                     checked={src.enabled}
-                    onChange={(e) => { toggleDealSourceEnabled(src.id, e.target.checked).then(onChange); }}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      toggleDealSourceEnabled(src.id, enabled).then(() => {
+                        logAudit({ action: "toggle_deal_source", entityType: "deal_source", entityId: src.id, before: { enabled: src.enabled }, after: { enabled } });
+                        onChange();
+                      });
+                    }}
                   />
                   Enabled
                 </label>
+                <button onClick={() => { setCreating(false); setEditingId(editingId === src.id ? null : src.id); }} className="rounded bg-muted px-1.5 py-0.5 hover:bg-muted/70">
+                  {editingId === src.id ? "Close" : "Edit"}
+                </button>
                 <button
-                  onClick={() => { if (confirm(`Delete source "${src.name}"?`)) deleteDealSource(src.id).then(onChange); }}
+                  onClick={() => {
+                    if (confirm(`Delete source "${src.name}"?`)) {
+                      deleteDealSource(src.id).then(() => {
+                        logAudit({ action: "delete_deal_source", entityType: "deal_source", entityId: src.id, before: src });
+                        onChange();
+                      });
+                    }
+                  }}
                   className="text-destructive hover:underline"
                 >Delete</button>
               </div>
             </div>
+            {editingId === src.id && (
+              <div className="mt-3">
+                <SourceForm initial={src} onSaved={() => { setEditingId(null); onChange(); }} />
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -466,28 +516,52 @@ function DealSourcesPanel({ sources, onChange }: { sources: DealSourceRow[]; onC
   );
 }
 
-function SourceForm({ onSaved }: { onSaved: () => void }) {
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [sourceType, setSourceType] = useState<DealSourceRow["source_type"]>("manual");
-  const [trust, setTrust] = useState<DealSourceRow["trust_level"]>("medium");
-  const [affiliate, setAffiliate] = useState(false);
-  const [api, setApi] = useState(false);
-  const [baseUrl, setBaseUrl] = useState("");
-  const [notes, setNotes] = useState("");
+const LINKING_METHODS = [
+  { value: "", label: "—" },
+  { value: "direct_source_url", label: "Direct source URL" },
+  { value: "manual_affiliate_url", label: "Manual affiliate URL" },
+  { value: "generated_affiliate_url", label: "Generated affiliate URL" },
+  { value: "reference_only", label: "Reference only" },
+] as const;
+
+function SourceForm({ initial, onSaved }: { initial?: DealSourceRow; onSaved: () => void }) {
+  const [name, setName] = useState(initial?.name ?? "");
+  const [slug, setSlug] = useState(initial?.slug ?? "");
+  const [sourceType, setSourceType] = useState<DealSourceRow["source_type"]>(initial?.source_type ?? "manual");
+  const [trust, setTrust] = useState<DealSourceRow["trust_level"]>(initial?.trust_level ?? "medium");
+  const [affiliate, setAffiliate] = useState(initial?.affiliate_supported ?? false);
+  const [api, setApi] = useState(initial?.api_supported ?? false);
+  const [baseUrl, setBaseUrl] = useState(initial?.base_url ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [approvedLinking, setApprovedLinking] = useState(initial?.approved_linking_method ?? "");
+  const [requiresManual, setRequiresManual] = useState(initial?.requires_manual_verification ?? false);
+  const [disclaimer, setDisclaimer] = useState(initial?.default_disclaimer ?? "");
   const [saving, setSaving] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const res = await upsertDealSource({
+    const before = initial;
+    const payload = {
+      id: initial?.id,
       name, slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
       source_type: sourceType, trust_level: trust,
       affiliate_supported: affiliate, api_supported: api,
-      base_url: baseUrl || null, enabled: true, notes: notes || null,
-    });
+      base_url: baseUrl || null, enabled: initial?.enabled ?? true, notes: notes || null,
+      approved_linking_method: approvedLinking || null,
+      requires_manual_verification: requiresManual,
+      default_disclaimer: disclaimer || null,
+    };
+    const res = await upsertDealSource(payload);
     setSaving(false);
     if (!res.ok) { alert(res.error); return; }
+    logAudit({
+      action: initial ? "update_deal_source" : "create_deal_source",
+      entityType: "deal_source",
+      entityId: initial?.id ?? res.id,
+      before: before ?? null,
+      after: payload,
+    });
     onSaved();
   }
   return (
@@ -509,10 +583,29 @@ function SourceForm({ onSaved }: { onSaved: () => void }) {
         </label>
         <label className="col-span-2">Base URL<input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} className="mt-1 w-full rounded border border-border bg-background px-2 py-1" /></label>
         <label className="col-span-2">Notes<input value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 w-full rounded border border-border bg-background px-2 py-1" /></label>
+        <label className="col-span-2">
+          Approved linking method
+          <select value={approvedLinking} onChange={(e) => setApprovedLinking(e.target.value)} className="mt-1 w-full rounded border border-border bg-background px-2 py-1">
+            {LINKING_METHODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+          <span className="mt-1 block text-[11px] text-muted-foreground">How Azulva should link to this source: direct source URL, manual affiliate URL, generated affiliate URL, or reference only.</span>
+        </label>
+        <label className="col-span-2 inline-flex items-start gap-2 text-xs">
+          <input type="checkbox" className="mt-0.5" checked={requiresManual} onChange={(e) => setRequiresManual(e.target.checked)} />
+          <span>
+            <span className="font-medium">Requires manual verification</span>
+            <span className="block text-muted-foreground">Use this when prices or inclusions must be manually checked before a deal is published.</span>
+          </span>
+        </label>
+        <label className="col-span-2">
+          Default disclaimer
+          <textarea value={disclaimer} onChange={(e) => setDisclaimer(e.target.value)} rows={2} className="mt-1 w-full rounded border border-border bg-background px-2 py-1" />
+          <span className="mt-1 block text-[11px] text-muted-foreground">Source-specific note shown in admin or deal verification when this source is used.</span>
+        </label>
         <label className="inline-flex items-center gap-1 text-xs"><input type="checkbox" checked={affiliate} onChange={(e) => setAffiliate(e.target.checked)} /> Affiliate-supported</label>
         <label className="inline-flex items-center gap-1 text-xs"><input type="checkbox" checked={api} onChange={(e) => setApi(e.target.checked)} /> API-supported</label>
       </div>
-      <button disabled={saving} className="self-start rounded bg-foreground px-3 py-1.5 text-xs text-background disabled:opacity-60">{saving ? "Saving…" : "Create source"}</button>
+      <button disabled={saving} className="self-start rounded bg-foreground px-3 py-1.5 text-xs text-background disabled:opacity-60">{saving ? "Saving…" : (initial ? "Save changes" : "Create source")}</button>
     </form>
   );
 }
@@ -652,7 +745,12 @@ function AuditLogSection({ audit }: { audit: AuditLogEntry[] }) {
 
 type ProviderStatus = Awaited<ReturnType<typeof getAffiliateProviderStatus>>;
 
-function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sources: DealSourceRow[]; onChange: () => void }) {
+function AffiliateSetupPanel({ deals, sources, analytics, onChange }: {
+  deals: Deal[];
+  sources: DealSourceRow[];
+  analytics: Awaited<ReturnType<typeof loadClickAnalytics>> | null;
+  onChange: () => void;
+}) {
   const [status, setStatus] = useState<ProviderStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<string[]>([]);
@@ -662,6 +760,8 @@ function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sour
   const tp = status?.travelpayouts;
   const providerConfigured = !!(tp?.tokenConfigured && tp?.markerConfigured);
   const affiliateReadySources = sources.filter((s) => s.affiliate_supported);
+  const refOnlySources = sources.filter((s) => s.approved_linking_method === "reference_only");
+  const manualVerifySources = sources.filter((s) => s.requires_manual_verification);
   const withGenerated = deals.filter((d) => d.generatedAffiliateUrl);
   const withManual = deals.filter((d) => !d.generatedAffiliateUrl && d.affiliateUrl);
   const directOnly = deals.filter((d) => !d.generatedAffiliateUrl && !d.affiliateUrl && d.sourceUrl);
@@ -688,7 +788,7 @@ function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sour
         fail++;
         setLog((l) => [...l, `✗ ${d.title} — ${res.reason}`]);
       }
-      logAudit({ action: "generate_affiliate_link", entityType: "deal", entityId: d.id, after: { reason: res.reason, provider: res.provider } });
+      logAudit({ action: force ? "regenerate_affiliate_link" : "generate_affiliate_link", entityType: "deal", entityId: d.id, after: { reason: res.reason, provider: res.provider } });
     }
     setBusy(false);
     alert(`Generated ${ok} link(s). ${fail} failed/skipped.`);
@@ -736,9 +836,43 @@ function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sour
             <li className="flex justify-between"><span>Deals with manual affiliate URL</span><span className="tabular-nums">{withManual.length}</span></li>
             <li className="flex justify-between"><span>Deals with direct-only URL</span><span className="tabular-nums">{directOnly.length}</span></li>
             <li className="flex justify-between"><span>Deals with no outbound URL</span><span className="tabular-nums">{noOutbound.length}</span></li>
+            <li className="flex justify-between"><span>Sources requiring manual verification</span><span className="tabular-nums">{manualVerifySources.length}</span></li>
+            <li className="flex justify-between"><span>Reference-only sources</span><span className="tabular-nums">{refOnlySources.length}</span></li>
           </ul>
         </div>
       </div>
+
+      {analytics && analytics.total > 0 && (
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-border p-3">
+            <div className="mb-2 text-sm font-semibold">Clicks by surface (clickedFrom)</div>
+            <ul className="space-y-1 text-xs">
+              {analytics.byClickedFrom.map((r) => (
+                <li key={r.clicked_from} className="flex justify-between"><span>{r.clicked_from}</span><span className="tabular-nums">{r.count}</span></li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Unknown / "other" attribution: <span className="font-semibold">{analytics.unknownAttributionCount}</span> of {analytics.total}.
+            </p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <div className="mb-2 text-sm font-semibold">Playbook flags</div>
+            {manualVerifySources.length === 0 && refOnlySources.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No sources flagged.</p>
+            ) : (
+              <ul className="space-y-1 text-xs">
+                {manualVerifySources.map((s) => (
+                  <li key={s.id} className="flex justify-between"><span>{s.name}</span><span className="text-muted-foreground">manual verify</span></li>
+                ))}
+                {refOnlySources.map((s) => (
+                  <li key={`r-${s.id}`} className="flex justify-between"><span>{s.name}</span><span className="text-muted-foreground">reference only</span></li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
 
       <div className="mt-4 rounded-xl border border-border p-3">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">

@@ -224,6 +224,7 @@ export type ClickedFrom =
   | "escape_board"
   | "trip_room"
   | "watchlist"
+  | "destination_page"
   | "admin_preview"
   | "other";
 

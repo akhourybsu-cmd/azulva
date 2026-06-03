@@ -115,7 +115,7 @@ function HomePage() {
         <section className="mt-8">
           <h2 className="mb-3 font-display text-xl">Today's Best Escape</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="lg:col-span-1"><DealCard deal={top} /></div>
+            <div className="lg:col-span-1"><DealCard deal={top} clickedFrom="deal_card" /></div>
             <div className="rounded-2xl border border-border bg-card p-5 text-sm lg:col-span-2">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">Why we picked this</div>
               <p className="mt-1 text-base leading-relaxed">{top.aiSummary}</p>
@@ -140,7 +140,7 @@ function HomePage() {
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((d) => <DealCard key={d.id} deal={d} />)}
+            {filtered.map((d) => <DealCard key={d.id} deal={d} clickedFrom="deal_card" />)}
           </div>
         )}
       </section>

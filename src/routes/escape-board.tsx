@@ -186,7 +186,7 @@ function EscapeBoardPage() {
             <Heart className="h-5 w-5" /> Saved deals · {savedDeals.length}
           </h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {savedDeals.map((d) => <DealCard key={d.id} deal={d} />)}
+            {savedDeals.map((d) => <DealCard key={d.id} deal={d} clickedFrom="escape_board" />)}
           </div>
         </section>
       )}

@@ -12,6 +12,7 @@ import { DealDestinationContextCard } from "@/components/DestinationIntelligence
 import { DealTrustPills } from "@/components/DealTrustPills";
 import { ViewDealButton } from "@/components/ViewDealButton";
 import { loadSnapshotsForDeal, type PriceSnapshotRow } from "@/lib/admin/priceSnapshots";
+import { loadDealSources, type DealSourceRow } from "@/lib/admin/dealSources";
 import { freshnessOf, freshnessLabel } from "@/lib/dealFreshness";
 import { formatDistanceToNow } from "date-fns";
 
@@ -29,9 +30,12 @@ function DealDetailPage() {
   const resort = mockResorts.find((r) => r.id === deal.resortId)!;
   const fallbackHistory = useMemo(() => mockPriceHistoryForDeal(deal.id), [deal.id]);
   const [snapshots, setSnapshots] = useState<PriceSnapshotRow[]>([]);
+  const [sources, setSources] = useState<DealSourceRow[]>([]);
   useEffect(() => {
     loadSnapshotsForDeal(deal.id).then(setSnapshots).catch(() => {});
+    loadDealSources().then(setSources).catch(() => {});
   }, [deal.id]);
+  const dealSource = sources.find((s) => s.id === deal.sourceId) ?? null;
   const history = snapshots.length >= 2
     ? snapshots.map((s) => ({ capturedAt: s.captured_at, pricePerPerson: Number(s.price_per_person) }))
     : fallbackHistory;
@@ -161,7 +165,7 @@ function DealDetailPage() {
             <section className="mt-6">
               <h2 className="font-display text-xl mb-3">Similar deals in {dest.name}</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {similar.map((d) => <DealCard key={d.id} deal={d} compact />)}
+                {similar.map((d) => <DealCard key={d.id} deal={d} compact clickedFrom="deal_card" />)}
               </div>
             </section>
           )}
@@ -182,6 +186,7 @@ function DealDetailPage() {
             <ViewDealButton
               deal={deal}
               referrer={`/deals/${deal.id}`}
+              clickedFrom="deal_detail"
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ocean)] to-[var(--coral)] py-3 text-sm font-semibold text-primary-foreground shadow"
             >
               Continue to booking partner
@@ -194,6 +199,11 @@ function DealDetailPage() {
                 <li>All-inclusive confidence: {deal.allInclusiveConfidence}</li>
                 <li>Outbound link: {deal.generatedAffiliateUrl ? "Affiliate link" : deal.affiliateUrl ? "Affiliate link" : deal.sourceUrl ? "Direct source link" : "Source unavailable"}</li>
               </ul>
+              {dealSource?.default_disclaimer && (
+                <p className="mt-2 rounded-md border border-border/60 bg-muted/40 p-2 text-[11px] italic">
+                  {dealSource.default_disclaimer}
+                </p>
+              )}
               <p className="mt-2"><ShieldCheck className="mr-1 inline h-3 w-3" />Prices and inclusions should be verified with the booking provider before purchase.</p>
               <p className="mt-1 italic">Some outbound links may be affiliate links. Azulva may earn a commission at no additional cost to you.</p>
             </div>
