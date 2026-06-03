@@ -230,7 +230,15 @@ function EditDealPage() {
           <div className="flex flex-wrap gap-2">
             <button type="submit" className="rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background">Save changes</button>
             <button type="button" onClick={() => { save({ status: "draft" }); alert("Saved as draft."); }} className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted">Save as draft</button>
-            <button type="button" onClick={() => { save({ status: "active" }); alert("Marked active."); }} className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted">Mark active</button>
+            <button type="button" onClick={() => {
+              if (readiness.state === "missing_critical") {
+                if (!confirm(`This deal is missing critical fields:\n\n• ${readiness.missing.join("\n• ")}\n\nMark it active anyway?`)) return;
+              } else if (readiness.state === "needs_review") {
+                if (!confirm(`This deal has unresolved warnings:\n\n• ${readiness.warnings.join("\n• ")}\n\nMark it active anyway?`)) return;
+              }
+              save({ status: "active" });
+              alert("Marked active.");
+            }} className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted">Mark active</button>
             <button type="button" onClick={() => nav({ to: "/admin" })} className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted">Done</button>
           </div>
         </form>
