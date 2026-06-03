@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as DealsDealIdRouteImport } from './routes/deals.$dealId'
 
+const WatchlistRoute = WatchlistRouteImport.update({
+  id: '/watchlist',
+  path: '/watchlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
@@ -38,12 +44,14 @@ const DealsDealIdRoute = DealsDealIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/explore': typeof ExploreRouteWithChildren
+  '/watchlist': typeof WatchlistRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/explore': typeof ExploreRouteWithChildren
+  '/watchlist': typeof WatchlistRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
 }
@@ -51,25 +59,45 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/explore': typeof ExploreRouteWithChildren
+  '/watchlist': typeof WatchlistRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/explore' | '/deals/$dealId' | '/explore/$slug'
+  fullPaths:
+    | '/'
+    | '/explore'
+    | '/watchlist'
+    | '/deals/$dealId'
+    | '/explore/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/explore' | '/deals/$dealId' | '/explore/$slug'
-  id: '__root__' | '/' | '/explore' | '/deals/$dealId' | '/explore/$slug'
+  to: '/' | '/explore' | '/watchlist' | '/deals/$dealId' | '/explore/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/explore'
+    | '/watchlist'
+    | '/deals/$dealId'
+    | '/explore/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ExploreRoute: typeof ExploreRouteWithChildren
+  WatchlistRoute: typeof WatchlistRoute
   DealsDealIdRoute: typeof DealsDealIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/watchlist': {
+      id: '/watchlist'
+      path: '/watchlist'
+      fullPath: '/watchlist'
+      preLoaderRoute: typeof WatchlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/explore': {
       id: '/explore'
       path: '/explore'
@@ -115,6 +143,7 @@ const ExploreRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ExploreRoute: ExploreRouteWithChildren,
+  WatchlistRoute: WatchlistRoute,
   DealsDealIdRoute: DealsDealIdRoute,
 }
 export const routeTree = rootRouteImport
