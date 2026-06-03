@@ -207,7 +207,7 @@ export function LandingPage() {
 
                     {err && <div className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{err}</div>}
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                       {step === "form" ? (
                         <>
                           <button
