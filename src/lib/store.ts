@@ -245,7 +245,12 @@ export const storeActions = {
           ? { ...t, dealIds: [...t.dealIds, dealId] } : t),
     };
     persist();
-    if (currentUserId) logCloud("addDealToRoom", cloud.cloudAddDealToTripRoom(tripRoomId, dealId, currentUserId));
+    if (currentUserId) {
+      const uid = currentUserId;
+      cloud.cloudAddDealToTripRoom(tripRoomId, dealId, uid)
+        .then(() => storeActions.rehydrateTripRooms())
+        .catch((e) => console.error("[cloud:addDealToRoom]", e));
+    }
   },
   recordVote(v: DealVote) {
     const myV = { ...v, userId: currentUserId ?? v.userId };
@@ -255,7 +260,11 @@ export const storeActions = {
         !(x.tripRoomId === myV.tripRoomId && x.dealId === myV.dealId && x.userId === myV.userId))],
     };
     persist();
-    if (currentUserId) logCloud("recordVote", cloud.cloudRecordVote(myV));
+    if (currentUserId) {
+      cloud.cloudRecordVote(myV)
+        .then(() => storeActions.rehydrateTripRooms())
+        .catch((e) => console.error("[cloud:recordVote]", e));
+    }
   },
   recordOutboundClick(c: OutboundClick) {
     state = { ...state, outboundClicks: [c, ...state.outboundClicks] };
@@ -275,20 +284,37 @@ export const storeActions = {
   async joinTripRoomByCode(code: string, displayName?: string | null): Promise<{ ok: boolean; error?: string }> {
     if (!currentUserId) return { ok: false, error: "Sign in to join a Trip Room." };
     try {
-      await cloud.cloudJoinByCode(code.trim(), displayName ?? null);
-      const cs = await cloud.loadCloudState(currentUserId);
-      state = {
-        ...state,
-        tripRooms: cs.tripRooms,
-        votes: cs.votes,
-      };
-      persist();
+      await cloud.cloudJoinByCode(code.trim().toUpperCase(), displayName ?? null);
+      await storeActions.rehydrateTripRooms();
       return { ok: true };
     } catch (e) {
       return { ok: false, error: (e as Error).message ?? "Could not join room" };
     }
   },
+  async rehydrateTripRooms() {
+    if (!currentUserId) return;
+    try {
+      const cs = await cloud.loadCloudState(currentUserId);
+      state = { ...state, tripRooms: cs.tripRooms, votes: cs.votes };
+      persist();
+    } catch (e) { console.error("[store:rehydrate]", e); }
+  },
+  async createDemoTripRoom() {
+    const demo: TripRoom = {
+      id: crypto.randomUUID(), ownerId: currentUserId ?? "me",
+      name: "Sample: Long weekend in Cancún",
+      description: "A demo room you can edit, vote in, or delete.",
+      budgetPerPerson: 1400, groupSize: 4,
+      homeAirports: ["BOS"], preferredDestinations: ["dst-cancun"],
+      tripType: "friends",
+      inviteCode: Math.random().toString(36).slice(2, 8).toUpperCase(),
+      memberNames: ["You"], dealIds: ["d-3", "d-15"],
+      createdAt: new Date().toISOString(),
+    };
+    this.addTripRoom(demo);
+  },
 };
+
 
 export function allDeals(): Deal[] {
   return [...state.customDeals, ...mockDeals];

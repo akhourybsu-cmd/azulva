@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as HowScoresWorkRouteImport } from './routes/how-scores-work'
@@ -39,6 +40,11 @@ const TripsRoute = TripsRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/how-scores-work': typeof HowScoresWorkRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/how-scores-work': typeof HowScoresWorkRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/how-scores-work': typeof HowScoresWorkRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/how-scores-work'
     | '/privacy'
     | '/profile'
+    | '/reset-password'
     | '/terms'
     | '/trips'
     | '/watchlist'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/how-scores-work'
     | '/privacy'
     | '/profile'
+    | '/reset-password'
     | '/terms'
     | '/trips'
     | '/watchlist'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/how-scores-work'
     | '/privacy'
     | '/profile'
+    | '/reset-password'
     | '/terms'
     | '/trips'
     | '/watchlist'
@@ -230,6 +242,7 @@ export interface RootRouteChildren {
   HowScoresWorkRoute: typeof HowScoresWorkRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
   TripsRoute: typeof TripsRoute
   WatchlistRoute: typeof WatchlistRoute
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -385,6 +405,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowScoresWorkRoute: HowScoresWorkRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
   TripsRoute: TripsRoute,
   WatchlistRoute: WatchlistRoute,
