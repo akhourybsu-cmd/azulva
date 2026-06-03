@@ -12,6 +12,9 @@ const navItems = [
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  async function signOut() { await supabase.auth.signOut(); navigate({ to: "/" }); }
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Top bar */}
