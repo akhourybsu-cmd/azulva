@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Compass, Heart, MapPin, Sparkles, Users, User, Shield, LogIn, LogOut } from "lucide-react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { setCurrentUser } from "@/lib/store";
 
 const navItems = [
   { to: "/", label: "Deals", icon: Sparkles },
@@ -14,6 +16,7 @@ const navItems = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  useEffect(() => { setCurrentUser(user?.id ?? null); }, [user?.id]);
   async function signOut() { await supabase.auth.signOut(); navigate({ to: "/" }); }
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
