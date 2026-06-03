@@ -66,7 +66,7 @@ function HomePage() {
             Find the all-inclusive trip everyone actually agrees on.
           </h1>
           <p className="mt-2 text-sm text-white/90 md:text-base">
-            Curated trips, transparent scoring, group voting. Built for friends and families planning the next escape.
+            Track resort deals, compare trip options, vote with friends, and know when a beach escape is actually worth booking.
           </p>
           <div className="mt-5 flex max-w-md items-center gap-2 rounded-full bg-white/95 p-1.5 text-foreground shadow-lg">
             <Search className="ml-3 h-4 w-4 text-muted-foreground" />
