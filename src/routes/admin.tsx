@@ -136,6 +136,9 @@ function AdminPage() {
   const adminLinks = [
     { label: "Dashboard", to: "#dash" },
     { label: "Launch Readiness", to: "#launch" },
+    { label: "Pilot Readiness", to: "#pilot-readiness" },
+    { label: "Pilot QA", to: "#pilot-qa" },
+    { label: "First Deal Pack", to: "#first-deal-pack" },
     { label: "Settings", to: "#settings" },
     { label: "Deals", to: "#deals" },
     { label: "Deal Quality", to: "#quality" },
