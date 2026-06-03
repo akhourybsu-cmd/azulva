@@ -20,8 +20,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <MapPin className="h-5 w-5" />
             </div>
             <div className="leading-tight">
-              <div className="font-display text-lg font-semibold">All-Inclusive Scout</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Find. Compare. Group-vote.</div>
+              <div className="font-display text-lg font-semibold">Azulva</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Beach trips, agreed on together.</div>
             </div>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
