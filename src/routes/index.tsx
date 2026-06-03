@@ -9,8 +9,8 @@ import { Search, SlidersHorizontal, TrendingUp } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Deals — All-Inclusive Scout" },
-      { name: "description", content: "Hand-curated and AI-scored all-inclusive vacation deals, updated daily." },
+      { title: "Today's Best Escapes — Azulva" },
+      { name: "description", content: "Hand-curated, Azulva-scored all-inclusive vacation deals — updated daily." },
     ],
   }),
   component: HomePage,
