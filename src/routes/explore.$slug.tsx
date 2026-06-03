@@ -42,10 +42,19 @@ function DestinationDetail() {
         <div>
           <p className="text-lg leading-relaxed">{dest.description}</p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {dest.vibeTags.map((t) => (
               <span key={t} className="rounded-full bg-[var(--ocean)]/10 px-3 py-1 text-xs font-semibold text-[var(--ocean)]">{t}</span>
             ))}
+            <span className="ml-auto inline-flex items-center gap-2">
+              <SaveDestinationButton destinationId={dest.id} variant="full" />
+              <a
+                href={`/watchlist?destination=${dest.id}`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90"
+              >
+                <Bell className="h-4 w-4" /> Create Deal Watch
+              </a>
+            </span>
           </div>
 
           <section className="mt-8">
