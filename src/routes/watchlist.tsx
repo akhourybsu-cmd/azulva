@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { DealCard } from "@/components/DealCard";
+import { ViewDealButton } from "@/components/ViewDealButton";
 import { useAllDeals, useStore, storeActions } from "@/lib/store";
-import { useEffect, useState } from "react";
-import { Bell, Heart, Plus, Trash2, Bookmark } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Bell, Heart, Plus, Trash2, Bookmark, ExternalLink } from "lucide-react";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { useAuth } from "@/hooks/use-auth";
 import { loadProfileAndPrefs } from "@/lib/cloudSync";
