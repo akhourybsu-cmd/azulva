@@ -745,7 +745,12 @@ function AuditLogSection({ audit }: { audit: AuditLogEntry[] }) {
 
 type ProviderStatus = Awaited<ReturnType<typeof getAffiliateProviderStatus>>;
 
-function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sources: DealSourceRow[]; onChange: () => void }) {
+function AffiliateSetupPanel({ deals, sources, analytics, onChange }: {
+  deals: Deal[];
+  sources: DealSourceRow[];
+  analytics: Awaited<ReturnType<typeof loadClickAnalytics>> | null;
+  onChange: () => void;
+}) {
   const [status, setStatus] = useState<ProviderStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<string[]>([]);
@@ -755,6 +760,8 @@ function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sour
   const tp = status?.travelpayouts;
   const providerConfigured = !!(tp?.tokenConfigured && tp?.markerConfigured);
   const affiliateReadySources = sources.filter((s) => s.affiliate_supported);
+  const refOnlySources = sources.filter((s) => s.approved_linking_method === "reference_only");
+  const manualVerifySources = sources.filter((s) => s.requires_manual_verification);
   const withGenerated = deals.filter((d) => d.generatedAffiliateUrl);
   const withManual = deals.filter((d) => !d.generatedAffiliateUrl && d.affiliateUrl);
   const directOnly = deals.filter((d) => !d.generatedAffiliateUrl && !d.affiliateUrl && d.sourceUrl);
@@ -781,7 +788,7 @@ function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sour
         fail++;
         setLog((l) => [...l, `✗ ${d.title} — ${res.reason}`]);
       }
-      logAudit({ action: "generate_affiliate_link", entityType: "deal", entityId: d.id, after: { reason: res.reason, provider: res.provider } });
+      logAudit({ action: force ? "regenerate_affiliate_link" : "generate_affiliate_link", entityType: "deal", entityId: d.id, after: { reason: res.reason, provider: res.provider } });
     }
     setBusy(false);
     alert(`Generated ${ok} link(s). ${fail} failed/skipped.`);
