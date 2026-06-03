@@ -1,0 +1,124 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AppShell } from "@/components/AppShell";
+import { DealCard } from "@/components/DealCard";
+import { useAllDeals, useStore, storeActions } from "@/lib/store";
+import { useState } from "react";
+import { Bell, Heart, Plus, Trash2 } from "lucide-react";
+import { mockDestinations } from "@/lib/data/mockDestinations";
+
+export const Route = createFileRoute("/watchlist")({
+  head: () => ({ meta: [{ title: "Watchlist — All-Inclusive Scout" }] }),
+  component: WatchlistPage,
+});
+
+function WatchlistPage() {
+  const s = useStore();
+  const deals = useAllDeals();
+  const saved = deals.filter((d) => s.savedDealIds.includes(d.id));
+  const [showNew, setShowNew] = useState(false);
+
+  return (
+    <AppShell>
+      <header className="mb-6 flex items-end justify-between">
+        <div>
+          <h1 className="font-display text-3xl md:text-4xl">Your watchlist</h1>
+          <p className="text-muted-foreground">Saved deals + searches we'll keep an eye on.</p>
+        </div>
+        <button onClick={() => setShowNew((v) => !v)} className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm text-background">
+          <Plus className="h-4 w-4" /> New search
+        </button>
+      </header>
+
+      {showNew && <NewWatchlistForm onDone={() => setShowNew(false)} />}
+
+      <section className="mt-6">
+        <h2 className="mb-3 flex items-center gap-2 font-display text-xl"><Bell className="h-5 w-5" /> Saved searches</h2>
+        {s.watchlists.length === 0 ? (
+          <p className="text-muted-foreground">No saved searches yet.</p>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {s.watchlists.map((w) => {
+              const matches = deals.filter((d) =>
+                (w.destinations === "Anywhere" || (w.destinations as string[]).includes(d.destinationId))
+                && d.pricePerPerson <= w.maxPricePerPerson
+                && d.dealScore >= w.minimumDealScore
+                && (!w.adultsOnlyRequired || d.adultsOnly)
+                && (!w.familyFriendlyRequired || d.familyFriendly)
+              );
+              return (
+                <div key={w.id} className="rounded-2xl border border-border bg-card p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-semibold">{w.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        From {w.homeAirport} · ≤${w.maxPricePerPerson}/pp · score ≥{w.minimumDealScore} · {w.alertFrequency} alerts
+                      </div>
+                    </div>
+                    <button onClick={() => storeActions.deleteWatchlist(w.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                  <div className="mt-2 text-sm">
+                    <span className="font-semibold text-[var(--success)]">{matches.length}</span> current matches
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="mb-3 flex items-center gap-2 font-display text-xl"><Heart className="h-5 w-5" /> Saved deals · {saved.length}</h2>
+        {saved.length === 0 ? (
+          <p className="text-muted-foreground">Tap the heart on any deal to save it here.</p>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {saved.map((d) => <DealCard key={d.id} deal={d} />)}
+          </div>
+        )}
+      </section>
+    </AppShell>
+  );
+}
+
+function NewWatchlistForm({ onDone }: { onDone: () => void }) {
+  const [name, setName] = useState("");
+  const [airport, setAirport] = useState("BOS");
+  const [maxPrice, setMaxPrice] = useState(1500);
+  const [minScore, setMinScore] = useState(75);
+  const [dest, setDest] = useState<string>("Anywhere");
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        storeActions.addWatchlist({
+          id: crypto.randomUUID(), userId: "me",
+          name: name || "Untitled search", homeAirport: airport, backupAirports: [],
+          destinations: dest === "Anywhere" ? "Anywhere" : [dest],
+          flexibleDates: true, minNights: 4, maxNights: 7,
+          maxPricePerPerson: maxPrice, adultsOnlyRequired: false, familyFriendlyRequired: false,
+          minimumResortRating: 4, nonstopPreferred: true, flightIncludedRequired: true,
+          transfersPreferred: true, minimumDealScore: minScore, alertFrequency: "daily",
+          enabled: true, createdAt: new Date().toISOString(),
+        });
+        onDone();
+      }}
+      className="mt-4 grid gap-3 rounded-2xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5"
+    >
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Search name" className="rounded-lg border border-border bg-background px-3 py-2 text-sm sm:col-span-2" />
+      <input value={airport} onChange={(e) => setAirport(e.target.value.toUpperCase())} placeholder="Airport" className="rounded-lg border border-border bg-background px-3 py-2 text-sm" />
+      <select value={dest} onChange={(e) => setDest(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+        <option value="Anywhere">Anywhere</option>
+        {mockDestinations.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+      </select>
+      <div className="flex items-center gap-2 text-xs">
+        <label>≤${maxPrice}</label>
+        <input type="range" min={500} max={3500} step={50} value={maxPrice} onChange={(e) => setMaxPrice(+e.target.value)} className="flex-1 accent-[var(--ocean)]" />
+      </div>
+      <div className="flex items-center gap-2 text-xs sm:col-span-2">
+        <label>Score ≥{minScore}</label>
+        <input type="range" min={0} max={95} step={5} value={minScore} onChange={(e) => setMinScore(+e.target.value)} className="flex-1 accent-[var(--ocean)]" />
+      </div>
+      <button className="rounded-lg bg-foreground py-2 text-sm font-semibold text-background sm:col-span-3 lg:col-span-3">Create</button>
+    </form>
+  );
+}
