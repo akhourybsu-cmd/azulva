@@ -77,14 +77,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "All-Inclusive Scout — Find the best all-inclusive vacation deals" },
+      { name: "description", content: "Discover, compare, watch, and group-vote on all-inclusive vacation deals from trusted partners." },
+      { property: "og:title", content: "All-Inclusive Scout" },
+      { property: "og:description", content: "Find the best all-inclusive vacation deals — together." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       {
