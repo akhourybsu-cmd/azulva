@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { useState } from "react";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "Profile — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "Profile — Azulva" }] }),
   component: ProfilePage,
 });
 
