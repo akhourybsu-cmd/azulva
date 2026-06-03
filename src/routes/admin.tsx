@@ -41,6 +41,7 @@ import { tryGenerateAffiliateLink, AFFILIATE_HELPER_TEXT, describeAffiliateReadi
 import { getAffiliateProviderStatus } from "@/lib/affiliates/providerStatus.functions";
 import type { Deal } from "@/lib/types";
 import { WaitlistSection, FeedbackSection } from "@/components/admin/WaitlistSection";
+import { PilotQASection, PilotReadinessPanel, FirstDealPackSection } from "@/components/admin/PilotQASection";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Azulva Admin" }] }),
