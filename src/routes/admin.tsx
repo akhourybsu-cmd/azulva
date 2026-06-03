@@ -282,11 +282,18 @@ function AdminPage() {
                   { label: "Signed in", count: analytics.signedInVsAnon.signed_in },
                   { label: "Anonymous", count: analytics.signedInVsAnon.anon },
                 ]} />
+                <ClickBreakdown title="By click surface (clickedFrom)" rows={analytics.byClickedFrom.map((r) => ({ label: r.clicked_from, count: r.count }))} />
               </div>
+            )}
+            {analytics && analytics.total > 0 && (
+              <p className="mt-3 text-[11px] text-muted-foreground">
+                Unknown / "other" attribution: {analytics.unknownAttributionCount} of {analytics.total} ({Math.round((analytics.unknownAttributionCount / analytics.total) * 100)}%).
+              </p>
             )}
           </section>
 
-          <AffiliateSetupPanel deals={deals} sources={sources} onChange={loadAll} />
+          <AffiliateSetupPanel deals={deals} sources={sources} analytics={analytics} onChange={loadAll} />
+
 
           <AuditLogSection audit={audit} />
 
