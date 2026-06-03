@@ -4,12 +4,13 @@ import { DealCard } from "@/components/DealCard";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { useAllDeals } from "@/lib/store";
-import { CloudRain, Sun } from "lucide-react";
+import { Bell, CloudRain, Sun } from "lucide-react";
 import {
   WeatherNowCard,
   DestinationBasicsCard,
   MoneyBasicsCard,
 } from "@/components/DestinationIntelligence";
+import { SaveDestinationButton } from "@/components/SaveDestinationButton";
 
 export const Route = createFileRoute("/explore/$slug")({
   component: DestinationDetail,
