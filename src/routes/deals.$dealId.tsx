@@ -110,6 +110,36 @@ function DealDetailPage() {
           </section>
 
           <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+            <h2 className="font-display text-xl flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-[var(--ocean)]" /> Deal verification</h2>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div><dt className="text-xs uppercase tracking-wider text-muted-foreground">Source</dt><dd>{deal.sourceLabel}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wider text-muted-foreground">Last checked</dt><dd suppressHydrationWarning>{formatDistanceToNow(new Date(deal.lastCheckedAt), { addSuffix: true })}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wider text-muted-foreground">Freshness</dt><dd>{freshnessLabel(freshness)}</dd></div>
+              <div><dt className="text-xs uppercase tracking-wider text-muted-foreground">All-inclusive confidence</dt><dd>{deal.allInclusiveConfidence}</dd></div>
+            </dl>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 text-xs">
+              <div className="rounded-lg bg-muted/40 p-3">
+                <div className="font-semibold mb-1">What we know</div>
+                <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
+                  <li>{deal.nights} nights, {deal.departureAirport} → {deal.arrivalAirport}</li>
+                  <li>{deal.flightIncluded === "included" ? "Flight included" : "Flight status: " + deal.flightIncluded}</li>
+                  <li>Room: {deal.roomType} · Meal plan: {deal.mealPlan}</li>
+                  <li>{deal.refundable === "included" ? "Refundable" : `Refund status: ${deal.refundable}`}</li>
+                </ul>
+              </div>
+              <div className="rounded-lg border border-[var(--warning)]/30 bg-[var(--warning)]/5 p-3">
+                <div className="font-semibold mb-1">Verify with the provider</div>
+                <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
+                  <li>Final price & taxes at checkout</li>
+                  <li>Exact resort, room category, and meal plan</li>
+                  <li>Baggage, transfers, and cancellation terms</li>
+                  {deal.allInclusiveConfidence !== "Confirmed" && <li>All-inclusive inclusions ({deal.allInclusiveConfidence})</li>}
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-6 rounded-2xl border border-border bg-card p-5">
             <h2 className="font-display text-xl">Price history</h2>
             {history.length < 3 ? (
               <p className="mt-2 text-sm text-muted-foreground">Not enough price history yet. Save this deal to start tracking.</p>
