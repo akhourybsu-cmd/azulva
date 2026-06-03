@@ -133,7 +133,7 @@ function HomePage() {
       )}
 
       <section className="mt-10">
-        <h2 className="mb-3 font-display text-xl">All deals · {filtered.length}</h2>
+        <h2 className="mb-3 font-display text-xl">Today's Best Escapes · {filtered.length}</h2>
         {filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-10 text-center text-muted-foreground">
             No deals match these filters. Loosen up?
