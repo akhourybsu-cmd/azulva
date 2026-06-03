@@ -17,6 +17,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as HowScoresWorkRouteImport } from './routes/how-scores-work'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
@@ -65,6 +66,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AffiliateDisclosureRoute = AffiliateDisclosureRouteImport.update({
   id: '/affiliate-disclosure',
   path: '/affiliate-disclosure',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
+  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/explore': typeof ExploreRouteWithChildren
   '/how-scores-work': typeof HowScoresWorkRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
+  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/explore': typeof ExploreRouteWithChildren
   '/how-scores-work': typeof HowScoresWorkRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
+  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/explore': typeof ExploreRouteWithChildren
   '/how-scores-work': typeof HowScoresWorkRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/affiliate-disclosure'
+    | '/auth'
     | '/contact'
     | '/explore'
     | '/how-scores-work'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/affiliate-disclosure'
+    | '/auth'
     | '/contact'
     | '/explore'
     | '/how-scores-work'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/admin'
     | '/affiliate-disclosure'
+    | '/auth'
     | '/contact'
     | '/explore'
     | '/how-scores-work'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
+  AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   ExploreRoute: typeof ExploreRouteWithChildren
   HowScoresWorkRoute: typeof HowScoresWorkRoute
@@ -279,6 +292,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/affiliate-disclosure': {
@@ -359,6 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
+  AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   ExploreRoute: ExploreRouteWithChildren,
   HowScoresWorkRoute: HowScoresWorkRoute,
