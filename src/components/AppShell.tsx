@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Compass, Heart, Sparkles, Users, User, Shield, LogIn, LogOut, Bookmark } from "lucide-react";
 import { AzulvaLogo, AzulvaEmblem } from "@/components/Brand";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
