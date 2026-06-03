@@ -10,10 +10,11 @@ import { loadDealSources, type DealSourceRow } from "@/lib/admin/dealSources";
 import { tryGenerateAffiliateLink } from "@/lib/affiliates/AffiliateLinkService";
 import {
   flagDeal, unflagDeal, expireDeal, restoreDeal,
-  markVerifiedToday, recalculateScore,
+  markVerifiedToday, recalculateScore, archiveDeal,
 } from "@/lib/admin/dealOps";
 import { addSnapshot } from "@/lib/admin/priceSnapshots";
 import { getReadiness, readinessLabel, readinessColorClass } from "@/lib/dealReadiness";
+import { logAudit } from "@/lib/admin/auditLog";
 
 export const Route = createFileRoute("/admin/deals/$dealId/edit")({
   component: () => <AdminGuard><EditDealPage /></AdminGuard>,
@@ -148,6 +149,7 @@ function EditDealPage() {
                   <option value="draft">draft</option>
                   <option value="expiring">expiring</option>
                   <option value="expired">expired</option>
+                  <option value="archived">archived</option>
                   <option value="flagged">flagged</option>
                 </>,
               })}
@@ -271,13 +273,21 @@ function EditDealPage() {
             )}
             <button
               onClick={() => {
-                save({ status: "expired", adminNotes: [form.adminNotes, `Archived ${new Date().toISOString()}`].filter(Boolean).join("\n") });
-                alert("Archived (set to expired with archive note).");
+                const next = archiveDeal(form);
+                save(next);
+                logAudit({ action: "archive_deal", entityType: "deal", entityId: form.id, before: form, after: next });
+                alert("Archived.");
               }}
               className="w-full rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-muted"
             >Archive</button>
             <button
-              onClick={() => { if (confirm("Delete deal permanently?")) { storeActions.deleteCustomDeal(form.id); nav({ to: "/admin" }); } }}
+              onClick={() => {
+                if (confirm("Delete deal permanently?")) {
+                  logAudit({ action: "delete_deal", entityType: "deal", entityId: form.id, before: form });
+                  storeActions.deleteCustomDeal(form.id);
+                  nav({ to: "/admin" });
+                }
+              }}
               className="w-full rounded-lg border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
             >Delete</button>
           </div>
