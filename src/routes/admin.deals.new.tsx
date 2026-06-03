@@ -57,7 +57,7 @@ function NewDealPage() {
       setGeneratedAffiliateUrl(res.affiliateUrl);
     } else {
       alert(
-        res.reason === "no_token"
+        res.reason === "not_configured"
           ? "No TRAVELPAYOUTS_TOKEN configured. Add an affiliate URL manually."
           : "Could not generate affiliate URL. Use a manual one.",
       );
