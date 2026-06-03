@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { AdminGuard } from "@/components/AdminGuard";
 import { storeActions } from "@/lib/store";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { mockDestinations } from "@/lib/data/mockDestinations";
@@ -10,7 +11,7 @@ import { loadDealSources, type DealSourceRow } from "@/lib/admin/dealSources";
 import { tryGenerateAffiliateLink } from "@/lib/affiliates/AffiliateLinkService";
 
 export const Route = createFileRoute("/admin/deals/new")({
-  component: NewDealPage,
+  component: () => <AdminGuard><NewDealPage /></AdminGuard>,
 });
 
 const incOpts: InclusionState[] = ["included", "not_included", "warning", "unknown"];

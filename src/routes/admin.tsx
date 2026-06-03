@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { AdminGuard } from "@/components/AdminGuard";
 import { useStore, useAllDeals, storeActions, getCurrentUserId } from "@/lib/store";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
@@ -20,11 +21,21 @@ import {
 } from "@/lib/admin/dealSources";
 import { addSnapshot, loadClickAnalytics } from "@/lib/admin/priceSnapshots";
 import { freshnessOf, expiringSoon, freshnessLabel } from "@/lib/dealFreshness";
+import {
+  resolveSourceName,
+  flagDeal,
+  unflagDeal,
+  expireDeal,
+  restoreDeal,
+  markVerifiedToday,
+  recalculateScore,
+  duplicateDeal,
+} from "@/lib/admin/dealOps";
 import type { Deal } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Azulva Admin" }] }),
-  component: AdminPage,
+  component: () => <AdminGuard><AdminPage /></AdminGuard>,
 });
 
 function AdminPage() {
@@ -140,18 +151,19 @@ function AdminPage() {
                 <tbody>
                   {deals.map((d) => {
                     const f = freshnessOf(d);
+                    const isCustom = !!s.customDeals.find((cd) => cd.id === d.id);
                     return (
-                      <tr key={d.id} className="border-t border-border">
-                        <td className="py-2"><Link to="/deals/$dealId" params={{ dealId: d.id }} className="hover:underline">{d.title}</Link></td>
-                        <td className="text-xs">{d.sourceId ? (sourceLookup.get(d.sourceId)?.name ?? d.sourceLabel) : d.sourceLabel}</td>
+                      <tr key={d.id} className="border-t border-border align-top">
+                        <td className="py-2"><Link to="/deals/$dealId" params={{ dealId: d.id }} className="hover:underline">{d.title}</Link>
+                          {d.status !== "active" && <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase">{d.status}</span>}
+                        </td>
+                        <td className="text-xs">{resolveSourceName(d, sources)}</td>
                         <td>${d.pricePerPerson}</td>
                         <td>{d.dealScore}</td>
                         <td className="text-xs">{freshnessLabel(f)}</td>
-                        <td className="space-x-2">
+                        <td className="space-x-1 whitespace-nowrap py-2">
                           <SnapshotInline deal={d} onAdded={loadAll} />
-                          {s.customDeals.find((cd) => cd.id === d.id) && (
-                            <button onClick={() => storeActions.deleteCustomDeal(d.id)} className="text-xs text-destructive hover:underline">Delete</button>
-                          )}
+                          {isCustom && <DealOpsMenu deal={d} />}
                         </td>
                       </tr>
                     );
@@ -439,5 +451,27 @@ function SourceForm({ onSaved }: { onSaved: () => void }) {
       </div>
       <button disabled={saving} className="self-start rounded bg-foreground px-3 py-1.5 text-xs text-background disabled:opacity-60">{saving ? "Saving…" : "Create source"}</button>
     </form>
+  );
+}
+
+function DealOpsMenu({ deal }: { deal: Deal }) {
+  function ask(label: string): string | null { const v = prompt(label); return v; }
+  return (
+    <span className="inline-flex flex-wrap gap-1 text-[10px]">
+      {deal.status !== "flagged" ? (
+        <button onClick={() => { const r = ask("Flag reason?"); if (r !== null) storeActions.updateCustomDeal(deal.id, (d) => flagDeal(d, r)); }} className="rounded bg-muted px-1.5 py-0.5 hover:bg-[var(--warning)]/20">Flag</button>
+      ) : (
+        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => unflagDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Unflag</button>
+      )}
+      {deal.status !== "expired" ? (
+        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => expireDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Expire</button>
+      ) : (
+        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => restoreDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Restore</button>
+      )}
+      <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => markVerifiedToday(d))} className="rounded bg-muted px-1.5 py-0.5">Verify</button>
+      <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => recalculateScore(d))} className="rounded bg-muted px-1.5 py-0.5">Recalc</button>
+      <button onClick={() => storeActions.duplicateCustomDeal(deal.id, duplicateDeal)} className="rounded bg-muted px-1.5 py-0.5">Duplicate</button>
+      <button onClick={() => { if (confirm("Delete deal?")) storeActions.deleteCustomDeal(deal.id); }} className="rounded bg-destructive/15 px-1.5 py-0.5 text-destructive">Delete</button>
+    </span>
   );
 }

@@ -377,6 +377,22 @@ export const storeActions = {
     persist();
     if (currentUserId) logCloud("addCustomDeal", cloud.cloudAddCustomDeal(currentUserId, d));
   },
+  updateCustomDeal(id: string, patch: Partial<Deal> | ((d: Deal) => Deal)) {
+    const next = state.customDeals.map((d) =>
+      d.id === id ? (typeof patch === "function" ? patch(d) : { ...d, ...patch }) : d);
+    state = { ...state, customDeals: next };
+    persist();
+    const updated = next.find((d) => d.id === id);
+    if (currentUserId && updated) logCloud("updateCustomDeal", cloud.cloudAddCustomDeal(currentUserId, updated));
+  },
+  duplicateCustomDeal(id: string, makeCopy: (d: Deal) => Deal) {
+    const orig = state.customDeals.find((d) => d.id === id);
+    if (!orig) return;
+    const copy = makeCopy(orig);
+    state = { ...state, customDeals: [copy, ...state.customDeals] };
+    persist();
+    if (currentUserId) logCloud("dupCustomDeal", cloud.cloudAddCustomDeal(currentUserId, copy));
+  },
   deleteCustomDeal(id: string) {
     state = { ...state, customDeals: state.customDeals.filter((d) => d.id !== id) };
     persist();
