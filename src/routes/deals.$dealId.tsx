@@ -186,12 +186,17 @@ function DealDetailPage() {
             >
               Continue to booking partner
             </ViewDealButton>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              <ShieldCheck className="mr-1 inline h-3 w-3" />
-              Last checked <span suppressHydrationWarning>{formatDistanceToNow(new Date(deal.lastCheckedAt), { addSuffix: true })}</span>
-              {" · "}{freshnessLabel(freshness)}.
-              Prices and inclusions should be verified with the booking provider before purchase.
-            </p>
+            <div className="mt-3 rounded-xl border border-border bg-background p-3 text-[11px] text-muted-foreground">
+              <div className="mb-1 font-semibold text-foreground">Deal verification</div>
+              <ul className="space-y-0.5">
+                <li>Source: {deal.sourceLabel}</li>
+                <li>Last checked: <span suppressHydrationWarning>{formatDistanceToNow(new Date(deal.lastCheckedAt), { addSuffix: true })}</span> · {freshnessLabel(freshness)}</li>
+                <li>All-inclusive confidence: {deal.allInclusiveConfidence}</li>
+                <li>Outbound link: {deal.generatedAffiliateUrl ? "Affiliate link" : deal.affiliateUrl ? "Affiliate link" : deal.sourceUrl ? "Direct source link" : "Source unavailable"}</li>
+              </ul>
+              <p className="mt-2"><ShieldCheck className="mr-1 inline h-3 w-3" />Prices and inclusions should be verified with the booking provider before purchase.</p>
+              <p className="mt-1 italic">Some outbound links may be affiliate links. Azulva may earn a commission at no additional cost to you.</p>
+            </div>
             <button
               onClick={() => storeActions.toggleSaved(deal.id)}
               className="mt-2 w-full rounded-xl border border-border py-2 text-sm hover:bg-muted"
