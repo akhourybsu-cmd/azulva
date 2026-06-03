@@ -127,6 +127,7 @@ function AdminPage() {
     { label: "Deal Quality", to: "#quality" },
     { label: "Deal Sources", to: "#sources" },
     { label: "Outbound Clicks", to: "#clicks" },
+    { label: "Affiliate Setup", to: "#affiliate" },
     { label: "Audit Log", to: "#audit" },
     { label: "Destinations", to: "#destinations" },
     { label: "Resorts", to: "#resorts" },
