@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { AdminGuard } from "@/components/AdminGuard";
-import { useStore, useAllDeals, storeActions, getCurrentUserId } from "@/lib/store";
+import { useStore, useAllDealsAdmin, storeActions, getCurrentUserId } from "@/lib/store";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { allProviders } from "@/lib/api/providers";
@@ -31,6 +31,8 @@ import {
   recalculateScore,
   duplicateDeal,
 } from "@/lib/admin/dealOps";
+import { getReadiness, readinessLabel, readinessColorClass } from "@/lib/dealReadiness";
+import { getAppMode, isProductionMode } from "@/lib/appMode";
 import type { Deal } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
@@ -40,7 +42,7 @@ export const Route = createFileRoute("/admin")({
 
 function AdminPage() {
   const s = useStore();
-  const deals = useAllDeals();
+  const deals = useAllDealsAdmin();
   const [health, setHealth] = useState<ProviderHealth[]>([]);
   const [recent, setRecent] = useState<ProviderHealth[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -85,16 +87,24 @@ function AdminPage() {
   }
 
   // Quality queue calculations
+  const prodMode = isProductionMode();
   const quality = {
     missingAffiliate: deals.filter((d) => d.status !== "expired" && !d.affiliateUrl && !d.generatedAffiliateUrl),
     missingSource: deals.filter((d) => d.status !== "expired" && !d.sourceUrl),
     unclearAi: deals.filter((d) => d.allInclusiveConfidence === "Unclear" || d.allInclusiveConfidence === "Unknown"),
-    stale: deals.filter((d) => {
-      const f = freshnessOf(d);
-      return f === "stale" || f === "aging";
-    }),
+    stale: deals.filter((d) => { const f = freshnessOf(d); return f === "stale" || f === "aging"; }),
     expiringSoon: deals.filter((d) => expiringSoon(d)),
     sampleDeals: deals.filter((d) => d.sourceLabel === "Sample Deal"),
+    missingSourceId: deals.filter((d) => d.sourceLabel !== "Sample Deal" && !d.sourceId),
+    missingDestination: deals.filter((d) => !d.destinationId),
+    missingResort: deals.filter((d) => !d.resortId),
+    missingPrice: deals.filter((d) => !d.pricePerPerson || !d.currencyCode),
+    expiredButActive: deals.filter((d) => d.status === "active" && d.expiresAt && new Date(d.expiresAt) < new Date()),
+    notPublishReady: deals.filter((d) => {
+      const r = getReadiness(d);
+      return d.status === "active" && (r.state === "missing_critical" || r.state === "needs_review");
+    }),
+    sampleInProd: prodMode ? deals.filter((d) => d.sourceLabel === "Sample Deal") : [],
   };
 
   const sourceLookup = new Map(sources.map((x) => [x.id, x] as const));
@@ -122,19 +132,32 @@ function AdminPage() {
 
         <div className="space-y-8">
           <section id="dash">
-            <h1 className="font-display text-3xl">Azulva Admin</h1>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h1 className="font-display text-3xl">Azulva Admin</h1>
+              <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${prodMode ? "bg-[var(--success)]/15 text-[var(--success)]" : "bg-[var(--warning)]/15 text-[var(--warning)]"}`}>
+                {getAppMode().toUpperCase()} MODE
+              </span>
+            </div>
+            {prodMode && quality.sampleInProd.length > 0 && (
+              <div className="mt-3 rounded-lg border border-[var(--warning)]/40 bg-[var(--warning)]/10 p-3 text-xs">
+                ⚠️ Production mode is on but {quality.sampleInProd.length} sample/mock deal(s) are still in the catalog. They are hidden from user feeds but visible here for review.
+              </div>
+            )}
             <div className="mt-4 grid gap-3 sm:grid-cols-4">
               <Stat label="Total deals" v={deals.length} />
               <Stat label="Sources" v={sources.length} />
               <Stat label="Outbound clicks" v={analytics?.total ?? s.outboundClicks.length} />
-              <Stat label="Quality issues" v={quality.missingAffiliate.length + quality.missingSource.length + quality.unclearAi.length} />
+              <Stat label="Quality issues" v={quality.missingAffiliate.length + quality.missingSource.length + quality.unclearAi.length + quality.notPublishReady.length} />
             </div>
           </section>
 
           <section id="deals" className="rounded-2xl border border-border bg-card p-5">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-xl">Deals</h2>
-              <Link to="/admin/deals/new" className="rounded-full bg-foreground px-3 py-1.5 text-xs text-background">+ New deal</Link>
+              <div className="flex gap-2">
+                <Link to="/admin/import" className="rounded-full border border-border px-3 py-1.5 text-xs hover:bg-muted">Import CSV</Link>
+                <Link to="/admin/deals/new" className="rounded-full bg-foreground px-3 py-1.5 text-xs text-background">+ New deal</Link>
+              </div>
             </div>
             <div className="max-h-[420px] overflow-auto">
               <table className="w-full text-left text-sm">
@@ -145,6 +168,7 @@ function AdminPage() {
                     <th>Price</th>
                     <th>Score</th>
                     <th>Freshness</th>
+                    <th>Readiness</th>
                     <th />
                   </tr>
                 </thead>
@@ -152,6 +176,7 @@ function AdminPage() {
                   {deals.map((d) => {
                     const f = freshnessOf(d);
                     const isCustom = !!s.customDeals.find((cd) => cd.id === d.id);
+                    const r = getReadiness(d);
                     return (
                       <tr key={d.id} className="border-t border-border align-top">
                         <td className="py-2"><Link to="/deals/$dealId" params={{ dealId: d.id }} className="hover:underline">{d.title}</Link>
@@ -161,9 +186,13 @@ function AdminPage() {
                         <td>${d.pricePerPerson}</td>
                         <td>{d.dealScore}</td>
                         <td className="text-xs">{freshnessLabel(f)}</td>
+                        <td><span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${readinessColorClass(r.state)}`}>{readinessLabel(r.state)}</span></td>
                         <td className="space-x-1 whitespace-nowrap py-2">
                           <SnapshotInline deal={d} onAdded={loadAll} />
-                          {isCustom && <DealOpsMenu deal={d} />}
+                          {isCustom && <>
+                            <Link to="/admin/deals/$dealId/edit" params={{ dealId: d.id }} className="rounded bg-muted px-1.5 py-0.5 text-[10px] hover:bg-muted/70">Edit</Link>
+                            <DealOpsMenu deal={d} />
+                          </>}
                         </td>
                       </tr>
                     );
@@ -178,12 +207,20 @@ function AdminPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <QualityList title="Missing affiliate URL" deals={quality.missingAffiliate} />
               <QualityList title="Missing source URL" deals={quality.missingSource} />
+              <QualityList title="Missing source ID" deals={quality.missingSourceId} />
+              <QualityList title="Missing destination" deals={quality.missingDestination} />
+              <QualityList title="Missing resort name" deals={quality.missingResort} />
+              <QualityList title="Missing price/currency" deals={quality.missingPrice} />
               <QualityList title="All-inclusive unclear" deals={quality.unclearAi} />
               <QualityList title="Stale / aging (>3 days)" deals={quality.stale} />
               <QualityList title="Expiring soon" deals={quality.expiringSoon} />
+              <QualityList title="Expired but still active" deals={quality.expiredButActive} />
+              <QualityList title="Active but not publish-ready" deals={quality.notPublishReady} />
               <QualityList title="Sample / mock deals" deals={quality.sampleDeals} />
+              {prodMode && <QualityList title="Sample deals visible in production" deals={quality.sampleInProd} />}
             </div>
           </section>
+
 
           <section id="sources" className="rounded-2xl border border-border bg-card p-5">
             <DealSourcesPanel sources={sources} onChange={loadAll} />

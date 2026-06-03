@@ -435,11 +435,29 @@ export const storeActions = {
 };
 
 
-export function allDeals(): Deal[] {
+import { shouldHideSampleDeals } from "./appMode";
+
+/** All deals including mock samples — for admin & internal lookups. */
+export function allDealsAdmin(): Deal[] {
   return [...state.customDeals, ...mockDeals];
 }
 
+/** User-facing deals: hides "Sample Deal" entries in production mode. */
+export function allDeals(): Deal[] {
+  const list = [...state.customDeals, ...mockDeals];
+  return shouldHideSampleDeals() ? list.filter((d) => d.sourceLabel !== "Sample Deal") : list;
+}
+
+/** User-facing hook: hides samples in production mode. */
 export function useAllDeals() {
+  const s = useStore();
+  const list = [...s.customDeals, ...mockDeals];
+  return shouldHideSampleDeals() ? list.filter((d) => d.sourceLabel !== "Sample Deal") : list;
+}
+
+/** Admin hook: always includes sample deals. */
+export function useAllDealsAdmin() {
   const s = useStore();
   return [...s.customDeals, ...mockDeals];
 }
+

@@ -26,7 +26,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as DealsDealIdRouteImport } from './routes/deals.$dealId'
+import { Route as AdminImportRouteImport } from './routes/admin.import'
 import { Route as AdminDealsNewRouteImport } from './routes/admin.deals.new'
+import { Route as AdminDealsDealIdEditRouteImport } from './routes/admin.deals.$dealId.edit'
 
 const WatchlistRoute = WatchlistRouteImport.update({
   id: '/watchlist',
@@ -113,9 +115,19 @@ const DealsDealIdRoute = DealsDealIdRouteImport.update({
   path: '/deals/$dealId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminImportRoute = AdminImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDealsNewRoute = AdminDealsNewRouteImport.update({
   id: '/deals/new',
   path: '/deals/new',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDealsDealIdEditRoute = AdminDealsDealIdEditRouteImport.update({
+  id: '/deals/$dealId/edit',
+  path: '/deals/$dealId/edit',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -135,9 +147,11 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
+  '/admin/import': typeof AdminImportRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/admin/deals/new': typeof AdminDealsNewRoute
+  '/admin/deals/$dealId/edit': typeof AdminDealsDealIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -155,9 +169,11 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
+  '/admin/import': typeof AdminImportRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/admin/deals/new': typeof AdminDealsNewRoute
+  '/admin/deals/$dealId/edit': typeof AdminDealsDealIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -176,9 +192,11 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
+  '/admin/import': typeof AdminImportRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/admin/deals/new': typeof AdminDealsNewRoute
+  '/admin/deals/$dealId/edit': typeof AdminDealsDealIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -198,9 +216,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/watchlist'
+    | '/admin/import'
     | '/deals/$dealId'
     | '/explore/$slug'
     | '/admin/deals/new'
+    | '/admin/deals/$dealId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -218,9 +238,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/watchlist'
+    | '/admin/import'
     | '/deals/$dealId'
     | '/explore/$slug'
     | '/admin/deals/new'
+    | '/admin/deals/$dealId/edit'
   id:
     | '__root__'
     | '/'
@@ -238,9 +260,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/watchlist'
+    | '/admin/import'
     | '/deals/$dealId'
     | '/explore/$slug'
     | '/admin/deals/new'
+    | '/admin/deals/$dealId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -383,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DealsDealIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/import': {
+      id: '/admin/import'
+      path: '/import'
+      fullPath: '/admin/import'
+      preLoaderRoute: typeof AdminImportRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/deals/new': {
       id: '/admin/deals/new'
       path: '/deals/new'
@@ -390,15 +421,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDealsNewRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/deals/$dealId/edit': {
+      id: '/admin/deals/$dealId/edit'
+      path: '/deals/$dealId/edit'
+      fullPath: '/admin/deals/$dealId/edit'
+      preLoaderRoute: typeof AdminDealsDealIdEditRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminImportRoute: typeof AdminImportRoute
   AdminDealsNewRoute: typeof AdminDealsNewRoute
+  AdminDealsDealIdEditRoute: typeof AdminDealsDealIdEditRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminImportRoute: AdminImportRoute,
   AdminDealsNewRoute: AdminDealsNewRoute,
+  AdminDealsDealIdEditRoute: AdminDealsDealIdEditRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -435,13 +477,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
