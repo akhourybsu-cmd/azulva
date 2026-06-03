@@ -71,7 +71,9 @@ function WatchlistPage() {
       <section className="mt-10">
         <h2 className="mb-3 flex items-center gap-2 font-display text-xl"><Heart className="h-5 w-5" /> Saved deals · {saved.length}</h2>
         {saved.length === 0 ? (
-          <p className="text-muted-foreground">Tap the heart on any deal to save it here.</p>
+          <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            Tap the heart on any deal to save it here. <a href="/" className="underline">Browse Today's Best Escapes →</a>
+          </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {saved.map((d) => <DealCard key={d.id} deal={d} />)}
