@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { ViewDealButton } from "@/components/ViewDealButton";
 import { useAllDeals, useStore, storeActions, getCurrentUserId } from "@/lib/store";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import {
   Users, Plus, Heart, ThumbsUp, DollarSign, Calendar, HelpCircle, X,
-  MapPin, Sparkles, AlertTriangle, Trash2, Bell, Settings2, ChevronDown,
+  MapPin, Sparkles, AlertTriangle, Trash2, Bell, Settings2, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { VoteType, TripRoom, TripRoomMemberPreferences } from "@/lib/types";
