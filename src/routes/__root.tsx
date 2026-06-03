@@ -119,6 +119,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthListener />
       <Outlet />
+      <SonnerToaster />
     </QueryClientProvider>
   );
 }
