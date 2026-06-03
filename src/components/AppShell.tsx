@@ -1,5 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { Compass, Heart, MapPin, Sparkles, Users, User, Shield } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Compass, Heart, MapPin, Sparkles, Users, User, Shield, LogIn, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { to: "/", label: "Deals", icon: Sparkles },
@@ -10,6 +12,9 @@ const navItems = [
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  async function signOut() { await supabase.auth.signOut(); navigate({ to: "/" }); }
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Top bar */}
@@ -39,6 +44,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link to="/admin" className="ml-2 flex items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs text-muted-foreground hover:bg-muted">
               <Shield className="h-3.5 w-3.5" /> Admin
             </Link>
+            {user ? (
+              <button onClick={signOut} className="ml-1 flex items-center gap-1.5 rounded-full border border-border px-3 py-2 text-xs text-muted-foreground hover:bg-muted">
+                <LogOut className="h-3.5 w-3.5" /> Sign out
+              </button>
+            ) : (
+              <Link to="/auth" className="ml-1 flex items-center gap-1.5 rounded-full bg-foreground px-3 py-2 text-xs font-medium text-background hover:opacity-90">
+                <LogIn className="h-3.5 w-3.5" /> Sign in
+              </Link>
+            )}
           </nav>
         </div>
       </header>
