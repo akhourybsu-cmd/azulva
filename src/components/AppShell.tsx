@@ -69,8 +69,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="grid gap-6 md:grid-cols-4 text-sm">
             <div>
-              <div className="font-display text-lg">All-Inclusive Scout</div>
-              <p className="mt-2 text-muted-foreground">Hunt down the best all-inclusive vacations — together.</p>
+              <div className="font-display text-lg">Azulva</div>
+              <p className="mt-2 text-muted-foreground">Find the all-inclusive trip everyone actually agrees on.</p>
             </div>
             <div>
               <div className="font-semibold mb-2">Product</div>
