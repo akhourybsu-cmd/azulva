@@ -110,10 +110,10 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Top pick */}
+      {/* Today's Best Escape */}
       {top && (
         <section className="mt-8">
-          <h2 className="mb-3 font-display text-xl">Top pick for you</h2>
+          <h2 className="mb-3 font-display text-xl">Today's Best Escape</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="lg:col-span-1"><DealCard deal={top} /></div>
             <div className="rounded-2xl border border-border bg-card p-5 text-sm lg:col-span-2">
