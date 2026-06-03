@@ -26,7 +26,7 @@ function HomePage() {
   const [maxPrice, setMaxPrice] = useState<number>(3000);
   const [audience, setAudience] = useState<"any" | "adults" | "family">("any");
   const [minScore, setMinScore] = useState<number>(0);
-  const [sort, setSort] = useState<Sort>("Best Deal Score");
+  const [sort, setSort] = useState<Sort>("Best Azulva Score");
   const [q, setQ] = useState("");
 
   const airports = useMemo(() => ["Any", ...Array.from(new Set(deals.map((d) => d.departureAirport)))], [deals]);
