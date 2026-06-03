@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/how-scores-work")({
-  head: () => ({ meta: [{ title: "How Deal Scores Work — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "How the Azulva Score works — Azulva" }] }),
   component: () => (
     <AppShell>
-      <h1 className="font-display text-3xl md:text-4xl">How Deal Scores work</h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">Every deal gets a 0–100 Deal Score based on a weighted blend of seven signals. We show the breakdown on every deal so you can decide for yourself.</p>
+      <h1 className="font-display text-3xl md:text-4xl">How the Azulva Score works</h1>
+      <p className="mt-3 max-w-2xl text-muted-foreground">Every deal gets a 0–100 Azulva Score based on a weighted blend of seven signals — price value, resort quality, flight convenience, all-inclusive confidence, group fit, flexibility, and urgency. We show the breakdown on every deal so you can decide for yourself.</p>
       <ul className="mt-6 max-w-2xl space-y-2 text-sm">
         <li><b>Price value · 30%</b> — how the price compares to typical for similar trips.</li>
         <li><b>Resort quality · 20%</b> — guest reviews + star rating.</li>
