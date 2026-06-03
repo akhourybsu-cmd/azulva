@@ -161,7 +161,7 @@ function DealDetailPage() {
             <section className="mt-6">
               <h2 className="font-display text-xl mb-3">Similar deals in {dest.name}</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {similar.map((d) => <DealCard key={d.id} deal={d} compact />)}
+                {similar.map((d) => <DealCard key={d.id} deal={d} compact clickedFrom="deal_card" />)}
               </div>
             </section>
           )}

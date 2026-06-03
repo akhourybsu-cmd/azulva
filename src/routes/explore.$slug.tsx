@@ -65,7 +65,7 @@ function DestinationDetail() {
               <p className="text-muted-foreground">No deals tracked yet for this destination.</p>
             ) : (
               <div className="grid gap-5 sm:grid-cols-2">
-                {deals.map((d) => <DealCard key={d.id} deal={d} />)}
+                {deals.map((d) => <DealCard key={d.id} deal={d} clickedFrom="destination_page" />)}
               </div>
             )}
           </section>
