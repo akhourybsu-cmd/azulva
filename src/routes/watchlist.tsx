@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { DealCard } from "@/components/DealCard";
+import { ViewDealButton } from "@/components/ViewDealButton";
 import { useAllDeals, useStore, storeActions } from "@/lib/store";
 import { useEffect, useState } from "react";
-import { Bell, Heart, Plus, Trash2, Bookmark } from "lucide-react";
+import { Bell, Heart, Plus, Trash2, Bookmark, ExternalLink } from "lucide-react";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { useAuth } from "@/hooks/use-auth";
 import { loadProfileAndPrefs } from "@/lib/cloudSync";
@@ -81,6 +82,25 @@ function WatchlistPage() {
                   <div className="mt-2 text-sm">
                     <span className="font-semibold text-[var(--success)]">{matches.length}</span> current matches
                   </div>
+                  {matches.length > 0 && (
+                    <ul className="mt-2 space-y-1.5">
+                      {matches.slice(0, 3).map((d) => (
+                        <li key={d.id} className="flex items-center justify-between gap-2 rounded-lg border border-border bg-background p-2 text-xs">
+                          <Link to="/deals/$dealId" params={{ dealId: d.id }} className="min-w-0 flex-1 truncate hover:underline">
+                            {d.title} <span className="text-muted-foreground">· ${d.pricePerPerson}/pp</span>
+                          </Link>
+                          <ViewDealButton
+                            deal={d}
+                            clickedFrom="watchlist"
+                            watchlistId={w.id}
+                            className="inline-flex shrink-0 items-center gap-1 rounded-md bg-foreground px-2 py-1 text-[10px] font-semibold text-background"
+                          >
+                            Check <ExternalLink className="h-3 w-3" />
+                          </ViewDealButton>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               );
             })}
@@ -96,7 +116,7 @@ function WatchlistPage() {
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {saved.map((d) => <DealCard key={d.id} deal={d} clickedFrom="watchlist" />)}
+            {saved.map((d) => <DealCard key={d.id} deal={d} clickedFrom="deal_card" />)}
           </div>
         )}
       </section>

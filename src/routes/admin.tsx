@@ -290,6 +290,52 @@ function AdminPage() {
                 Unknown / "other" attribution: {analytics.unknownAttributionCount} of {analytics.total} ({Math.round((analytics.unknownAttributionCount / analytics.total) * 100)}%).
               </p>
             )}
+            {analytics && analytics.total > 0 && (
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <ClickBreakdown title="Top Trip Rooms by outbound clicks" rows={analytics.byTripRoom.map((r) => ({
+                  label: s.tripRooms.find((t) => t.id === r.trip_room_id)?.name ?? r.trip_room_id.slice(0, 8),
+                  count: r.count,
+                }))} />
+                <ClickBreakdown title="Top Watchlists by outbound clicks" rows={analytics.byWatchlist.map((r) => ({
+                  label: s.watchlists.find((w) => w.id === r.watchlist_id)?.name ?? r.watchlist_id.slice(0, 8),
+                  count: r.count,
+                }))} />
+                <ClickBreakdown title="Top deals by Trip Room clicks" rows={analytics.topDealsByTripRoom.map((r) => ({
+                  label: deals.find((d) => d.id === r.deal_id)?.title ?? r.deal_id,
+                  count: r.count,
+                }))} />
+                <ClickBreakdown title="Top deals by Watchlist clicks" rows={analytics.topDealsByWatchlist.map((r) => ({
+                  label: deals.find((d) => d.id === r.deal_id)?.title ?? r.deal_id,
+                  count: r.count,
+                }))} />
+              </div>
+            )}
+            <BookingIntentLegend />
+            {analytics && analytics.total > 0 && (
+              <div className="mt-4 rounded-xl border border-border p-3 text-xs">
+                <div className="mb-1.5 text-sm font-semibold">Attribution diagnostics</div>
+                <ul className="space-y-0.5">
+                  <li className="flex justify-between"><span>Clicks with clicked_from = "other"</span><span className="tabular-nums">{analytics.unknownAttributionCount}</span></li>
+                  <li className="flex justify-between"><span>"trip_room" clicks missing trip_room_id</span><span className="tabular-nums">{analytics.missingTripRoomFromTripRoom}</span></li>
+                  <li className="flex justify-between"><span>"watchlist" clicks missing watchlist_id</span><span className="tabular-nums">{analytics.missingWatchlistFromWatchlist}</span></li>
+                </ul>
+                {analytics.dealClicksMissingAffiliateUrl.length > 0 && (
+                  <div className="mt-2">
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Deals with clicks but no affiliate URL</div>
+                    <ul className="mt-1 space-y-0.5">
+                      {analytics.dealClicksMissingAffiliateUrl.map((r) => (
+                        <li key={r.deal_id} className="flex justify-between">
+                          <Link to="/deals/$dealId" params={{ dealId: r.deal_id }} className="truncate pr-2 hover:underline">
+                            {deals.find((d) => d.id === r.deal_id)?.title ?? r.deal_id}
+                          </Link>
+                          <span className="tabular-nums">{r.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
 
           <AffiliateSetupPanel deals={deals} sources={sources} analytics={analytics} onChange={loadAll} />
@@ -383,6 +429,29 @@ function QualityList({ title, deals, customIds }: { title: string; deals: Deal[]
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function BookingIntentLegend() {
+  const rows: { label: string; intent: string }[] = [
+    { label: "trip_room", intent: "high group intent" },
+    { label: "watchlist", intent: "high personal intent" },
+    { label: "deal_detail", intent: "high research intent" },
+    { label: "deal_card", intent: "broad discovery intent" },
+    { label: "destination_page", intent: "destination-driven intent" },
+    { label: "escape_board", intent: "saved / shortlist intent" },
+    { label: "admin_preview", intent: "internal verification" },
+    { label: "other", intent: "unattributed / unknown" },
+  ];
+  return (
+    <div className="mt-4 rounded-xl border border-dashed border-border p-3 text-[11px]">
+      <div className="mb-1.5 text-sm font-semibold">Booking-intent legend</div>
+      <ul className="grid gap-0.5 sm:grid-cols-2">
+        {rows.map((r) => (
+          <li key={r.label} className="flex justify-between gap-2"><span className="font-mono">{r.label}</span><span className="text-muted-foreground">{r.intent}</span></li>
+        ))}
+      </ul>
     </div>
   );
 }

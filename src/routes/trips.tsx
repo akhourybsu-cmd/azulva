@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { ViewDealButton } from "@/components/ViewDealButton";
 import { useAllDeals, useStore, storeActions, getCurrentUserId } from "@/lib/store";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import {
   Users, Plus, Heart, ThumbsUp, DollarSign, Calendar, HelpCircle, X,
-  MapPin, Sparkles, AlertTriangle, Trash2, Bell, Settings2, ChevronDown,
+  MapPin, Sparkles, AlertTriangle, Trash2, Bell, Settings2, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { VoteType, TripRoom, TripRoomMemberPreferences } from "@/lib/types";
@@ -223,6 +224,19 @@ function TripRoomCard({ room, allDeals }: { room: TripRoom; allDeals: ReturnType
                     <FitBadge fit={fit} />
                   </div>
                   {fit.conflicts.length > 0 && <ConflictRow conflicts={fit.conflicts} />}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <Link to="/deals/$dealId" params={{ dealId: d.id }} className="rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] hover:bg-muted">
+                      View Details
+                    </Link>
+                    <ViewDealButton
+                      deal={d}
+                      clickedFrom="trip_room"
+                      tripRoomId={room.id}
+                      className="inline-flex items-center gap-1 rounded-lg bg-foreground px-2.5 py-1 text-[11px] font-semibold text-background"
+                    >
+                      Check Availability <ExternalLink className="h-3 w-3" />
+                    </ViewDealButton>
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {VOTE_OPTIONS.map((vo) => {
                       const count = dealVotes.filter((v) => v.voteType === vo.type).length;
