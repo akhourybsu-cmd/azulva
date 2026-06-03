@@ -1,5 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { Compass, Heart, MapPin, Sparkles, Users, User, Shield } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Compass, Heart, MapPin, Sparkles, Users, User, Shield, LogIn, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { to: "/", label: "Deals", icon: Sparkles },
