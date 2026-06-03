@@ -3,7 +3,16 @@
 // from in-memory state.
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
-import type { Deal, DealVote, OutboundClick, TripRoom, Watchlist } from "./types";
+import type {
+  Deal,
+  DealVote,
+  DestinationVote,
+  OutboundClick,
+  TripRoom,
+  TripRoomMember,
+  TripRoomMemberPreferences,
+  Watchlist,
+} from "./types";
 
 type CloudState = {
   savedDealIds: string[];
@@ -20,24 +29,32 @@ export async function loadCloudState(userId: string): Promise<CloudState> {
     supabase.from("saved_destinations").select("destination_id").eq("user_id", userId),
     supabase.from("watchlists").select("id, data, created_at").eq("user_id", userId),
     supabase.from("trip_rooms").select("id, name, invite_code, owner_id, data, created_at"),
-    supabase.from("trip_room_members").select("room_id, display_name, user_id"),
+    supabase.from("trip_room_members").select("room_id, display_name, user_id, role, preferences"),
     supabase.from("custom_deals").select("id, data"),
   ]);
 
   const rooms = (ownedRooms.data ?? []);
   const roomIds = rooms.map((r) => r.id);
 
-  let dealsByRoom: Record<string, string[]> = {};
+  const dealsByRoom: Record<string, string[]> = {};
+  const destsByRoom: Record<string, string[]> = {};
   let votes: DealVote[] = [];
-  let members = memberRooms.data ?? [];
+  let destVotes: DestinationVote[] = [];
+  const members = memberRooms.data ?? [];
   if (roomIds.length > 0) {
-    const [trd, trv] = await Promise.all([
+    const [trd, trv, trdest, trdv] = await Promise.all([
       supabase.from("trip_room_deals").select("room_id, deal_id").in("room_id", roomIds),
       supabase.from("trip_room_votes").select("id, room_id, deal_id, user_id, vote_type, comment, created_at").in("room_id", roomIds),
+      supabase.from("trip_room_destinations").select("room_id, destination_id").in("room_id", roomIds),
+      supabase.from("trip_room_destination_votes").select("id, room_id, destination_id, user_id, vote_type, comment, created_at").in("room_id", roomIds),
     ]);
     (trd.data ?? []).forEach((row) => {
       dealsByRoom[row.room_id] = dealsByRoom[row.room_id] ?? [];
       dealsByRoom[row.room_id].push(row.deal_id);
+    });
+    (trdest.data ?? []).forEach((row) => {
+      destsByRoom[row.room_id] = destsByRoom[row.room_id] ?? [];
+      destsByRoom[row.room_id].push(row.destination_id);
     });
     votes = (trv.data ?? []).map((v) => ({
       id: v.id,
@@ -49,11 +66,21 @@ export async function loadCloudState(userId: string): Promise<CloudState> {
       comment: v.comment ?? undefined,
       createdAt: v.created_at,
     }));
+    destVotes = (trdv.data ?? []).map((v) => ({
+      id: v.id,
+      tripRoomId: v.room_id,
+      destinationId: v.destination_id,
+      userId: v.user_id,
+      userName: "Member",
+      voteType: v.vote_type as DestinationVote["voteType"],
+      comment: v.comment ?? undefined,
+      createdAt: v.created_at,
+    }));
   }
 
   // Resolve member display names via profiles
   const memberUserIds = Array.from(new Set(members.map((m) => m.user_id)));
-  let profileMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
+  const profileMap: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
   if (memberUserIds.length > 0) {
     const { data: profs } = await supabase
       .from("profiles").select("id, display_name, avatar_url").in("id", memberUserIds);
@@ -61,8 +88,11 @@ export async function loadCloudState(userId: string): Promise<CloudState> {
       profileMap[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
     });
   }
-  // Attach userName to votes
   votes = votes.map((v) => ({
+    ...v,
+    userName: profileMap[v.userId]?.display_name ?? "Member",
+  }));
+  destVotes = destVotes.map((v) => ({
     ...v,
     userName: profileMap[v.userId]?.display_name ?? "Member",
   }));
@@ -70,9 +100,15 @@ export async function loadCloudState(userId: string): Promise<CloudState> {
   const tripRooms: TripRoom[] = rooms.map((r) => {
     const data = (r.data as Record<string, unknown> | null) ?? {};
     const roomMembers = members.filter((m) => m.room_id === r.id);
-    const memberNames = roomMembers.map(
-      (m) => m.display_name ?? profileMap[m.user_id]?.display_name ?? "Member"
-    );
+    const mappedMembers: TripRoomMember[] = roomMembers.map((m) => ({
+      userId: m.user_id,
+      displayName:
+        m.display_name ?? profileMap[m.user_id]?.display_name ?? "Member",
+      avatarUrl: profileMap[m.user_id]?.avatar_url ?? null,
+      role: (m.role === "owner" ? "owner" : "member"),
+      preferences: (m.preferences as TripRoomMemberPreferences | null) ?? {},
+    }));
+    const memberNames = mappedMembers.map((m) => m.displayName);
     return {
       id: r.id,
       ownerId: r.owner_id,
@@ -87,7 +123,10 @@ export async function loadCloudState(userId: string): Promise<CloudState> {
       tripType: (data.tripType as TripRoom["tripType"]) ?? "friends",
       inviteCode: r.invite_code,
       memberNames,
+      members: mappedMembers,
       dealIds: dealsByRoom[r.id] ?? [],
+      destinationIds: destsByRoom[r.id] ?? [],
+      destinationVotes: destVotes.filter((v) => v.tripRoomId === r.id),
       createdAt: r.created_at,
     };
   });
@@ -137,7 +176,6 @@ export async function migrateLocalToCloud(
   if (await isMigrated(userId)) return false;
 
   try {
-    // Saved deals — idempotent via unique (user_id, deal_id)
     if (local.savedDealIds.length > 0) {
       await supabase.from("saved_deals").upsert(
         local.savedDealIds.map((deal_id) => ({ user_id: userId, deal_id })),
@@ -145,7 +183,6 @@ export async function migrateLocalToCloud(
       );
     }
 
-    // Watchlists — only migrate if user has none in cloud
     const { count: wlCount } = await supabase
       .from("watchlists").select("*", { count: "exact", head: true }).eq("user_id", userId);
     if ((wlCount ?? 0) === 0 && local.watchlists.length > 0) {
@@ -154,7 +191,6 @@ export async function migrateLocalToCloud(
       );
     }
 
-    // Trip rooms — only if cloud has none owned by user
     const { count: trCount } = await supabase
       .from("trip_rooms").select("*", { count: "exact", head: true }).eq("owner_id", userId);
     if ((trCount ?? 0) === 0 && local.tripRooms.length > 0) {
@@ -185,6 +221,15 @@ export async function migrateLocalToCloud(
           await supabase.from("trip_room_deals").upsert(
             t.dealIds.map((deal_id) => ({ room_id: inserted.id, deal_id, added_by: userId })),
             { onConflict: "room_id,deal_id", ignoreDuplicates: true },
+          );
+        }
+        const seedDests = (t.destinationIds && t.destinationIds.length > 0)
+          ? t.destinationIds
+          : (t.preferredDestinations ?? []);
+        if (seedDests.length > 0) {
+          await supabase.from("trip_room_destinations").upsert(
+            seedDests.map((destination_id) => ({ room_id: inserted.id, destination_id, added_by: userId })),
+            { onConflict: "room_id,destination_id", ignoreDuplicates: true },
           );
         }
       }
@@ -262,8 +307,37 @@ export async function cloudAddDealToTripRoom(roomId: string, dealId: string, use
   );
 }
 
+export async function cloudAddDestinationToTripRoom(roomId: string, destinationId: string, userId: string) {
+  await supabase.from("trip_room_destinations").upsert(
+    { room_id: roomId, destination_id: destinationId, added_by: userId },
+    { onConflict: "room_id,destination_id", ignoreDuplicates: true },
+  );
+}
+
+export async function cloudRemoveDestinationFromTripRoom(roomId: string, destinationId: string) {
+  await supabase.from("trip_room_destinations")
+    .delete().eq("room_id", roomId).eq("destination_id", destinationId);
+}
+
+export async function cloudRecordDestinationVote(v: DestinationVote) {
+  await supabase.from("trip_room_destination_votes")
+    .delete().eq("room_id", v.tripRoomId).eq("destination_id", v.destinationId).eq("user_id", v.userId);
+  await supabase.from("trip_room_destination_votes").insert({
+    room_id: v.tripRoomId,
+    destination_id: v.destinationId,
+    user_id: v.userId,
+    vote_type: v.voteType,
+    comment: v.comment ?? null,
+  });
+}
+
+export async function cloudSaveMemberPreferences(roomId: string, userId: string, prefs: TripRoomMemberPreferences) {
+  await supabase.from("trip_room_members")
+    .update({ preferences: prefs as unknown as Json })
+    .eq("room_id", roomId).eq("user_id", userId);
+}
+
 export async function cloudRecordVote(v: DealVote) {
-  // Delete-then-insert avoids relying on a more specific composite upsert
   await supabase.from("trip_room_votes")
     .delete().eq("room_id", v.tripRoomId).eq("deal_id", v.dealId).eq("user_id", v.userId);
   await supabase.from("trip_room_votes").insert({
@@ -346,7 +420,6 @@ export async function saveProfile(userId: string, profile: CloudProfile) {
 }
 
 export async function savePreferences(userId: string, prefs: CloudPreferences) {
-  // Preserve other keys (e.g. migrated_v1) via a read-merge-write
   const { data } = await supabase.from("user_preferences").select("data").eq("user_id", userId).maybeSingle();
   const existing = (data?.data as Record<string, unknown> | undefined) ?? {};
   await supabase.from("user_preferences").upsert(
