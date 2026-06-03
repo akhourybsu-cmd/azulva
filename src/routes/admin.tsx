@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+import { AdminGuard } from "@/components/AdminGuard";
 import { useStore, useAllDeals, storeActions, getCurrentUserId } from "@/lib/store";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
@@ -20,11 +21,21 @@ import {
 } from "@/lib/admin/dealSources";
 import { addSnapshot, loadClickAnalytics } from "@/lib/admin/priceSnapshots";
 import { freshnessOf, expiringSoon, freshnessLabel } from "@/lib/dealFreshness";
+import {
+  resolveSourceName,
+  flagDeal,
+  unflagDeal,
+  expireDeal,
+  restoreDeal,
+  markVerifiedToday,
+  recalculateScore,
+  duplicateDeal,
+} from "@/lib/admin/dealOps";
 import type { Deal } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Azulva Admin" }] }),
-  component: AdminPage,
+  component: () => <AdminGuard><AdminPage /></AdminGuard>,
 });
 
 function AdminPage() {
