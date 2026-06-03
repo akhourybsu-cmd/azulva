@@ -810,6 +810,25 @@ export type Database = {
         Args: { _code: string; _display_name?: string }
         Returns: string
       }
+      submit_waitlist: {
+        Args: {
+          _email: string
+          _group_size?: number
+          _home_airport?: string
+          _max_budget_per_person?: number
+          _name?: string
+          _preferred_destinations?: string[]
+          _priorities?: string[]
+          _referred_by?: string
+          _source?: string
+          _trip_type?: string
+        }
+        Returns: {
+          id: string
+          referral_code: string
+          was_existing: boolean
+        }[]
+      }
     }
     Enums: {
       admin_role: "owner" | "admin" | "editor" | "viewer"
