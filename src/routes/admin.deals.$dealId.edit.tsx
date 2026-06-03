@@ -59,19 +59,21 @@ function EditDealPage() {
   }
 
   async function addSnapshotNow() {
+    if (!form) return;
     const uid = getCurrentUserId();
     if (!uid) { alert("Sign in to record a snapshot."); return; }
+    const f = form;
     const r = await addSnapshot({
-      dealId: form.id,
-      pricePerPerson: form.pricePerPerson,
-      currency: form.currencyCode,
-      sourceId: form.sourceId ?? null,
-      resortName: mockResorts.find((x) => x.id === form.resortId)?.name ?? null,
-      departureAirport: form.departureAirport,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      nights: form.nights,
-      sourceUrl: form.sourceUrl,
+      dealId: f.id,
+      pricePerPerson: f.pricePerPerson,
+      currency: f.currencyCode,
+      sourceId: f.sourceId ?? null,
+      resortName: mockResorts.find((x) => x.id === f.resortId)?.name ?? null,
+      departureAirport: f.departureAirport,
+      startDate: f.startDate,
+      endDate: f.endDate,
+      nights: f.nights,
+      sourceUrl: f.sourceUrl,
       capturedByUser: uid,
     });
     alert(r.ok ? "Snapshot recorded." : `Snapshot failed: ${r.error}`);

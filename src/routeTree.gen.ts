@@ -27,6 +27,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as DealsDealIdRouteImport } from './routes/deals.$dealId'
 import { Route as AdminDealsNewRouteImport } from './routes/admin.deals.new'
+import { Route as AdminDealsDealIdEditRouteImport } from './routes/admin.deals.$dealId.edit'
 
 const WatchlistRoute = WatchlistRouteImport.update({
   id: '/watchlist',
@@ -118,6 +119,11 @@ const AdminDealsNewRoute = AdminDealsNewRouteImport.update({
   path: '/deals/new',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDealsDealIdEditRoute = AdminDealsDealIdEditRouteImport.update({
+  id: '/deals/$dealId/edit',
+  path: '/deals/$dealId/edit',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/admin/deals/new': typeof AdminDealsNewRoute
+  '/admin/deals/$dealId/edit': typeof AdminDealsDealIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/admin/deals/new': typeof AdminDealsNewRoute
+  '/admin/deals/$dealId/edit': typeof AdminDealsDealIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
   '/admin/deals/new': typeof AdminDealsNewRoute
+  '/admin/deals/$dealId/edit': typeof AdminDealsDealIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/deals/$dealId'
     | '/explore/$slug'
     | '/admin/deals/new'
+    | '/admin/deals/$dealId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/deals/$dealId'
     | '/explore/$slug'
     | '/admin/deals/new'
+    | '/admin/deals/$dealId/edit'
   id:
     | '__root__'
     | '/'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/deals/$dealId'
     | '/explore/$slug'
     | '/admin/deals/new'
+    | '/admin/deals/$dealId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -390,15 +402,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDealsNewRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/deals/$dealId/edit': {
+      id: '/admin/deals/$dealId/edit'
+      path: '/deals/$dealId/edit'
+      fullPath: '/admin/deals/$dealId/edit'
+      preLoaderRoute: typeof AdminDealsDealIdEditRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
   AdminDealsNewRoute: typeof AdminDealsNewRoute
+  AdminDealsDealIdEditRoute: typeof AdminDealsDealIdEditRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminDealsNewRoute: AdminDealsNewRoute,
+  AdminDealsDealIdEditRoute: AdminDealsDealIdEditRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
