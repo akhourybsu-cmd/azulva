@@ -122,5 +122,3 @@ function NewWatchlistForm({ onDone }: { onDone: () => void }) {
     </form>
   );
 }
-
-const _unused = useMemo;
