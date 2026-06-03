@@ -6,6 +6,7 @@ import { mockDestinations } from "@/lib/data/mockDestinations";
 import { Bookmark, Heart, Plane, Bell, ScanSearch, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CompareDestinationsDialog, useCompareSet } from "@/components/CompareDestinations";
+import { SuggestToTripRoomButton } from "@/components/SuggestToTripRoom";
 
 export const Route = createFileRoute("/escape-board")({
   head: () => ({
@@ -131,6 +132,7 @@ function EscapeBoardPage() {
                       >
                         <Bell className="h-3.5 w-3.5" /> Create Deal Watch
                       </a>
+                      <SuggestToTripRoomButton destinationId={d.id} label="Add to Room" className="!px-3 !py-1.5 !text-xs" />
                       <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground">
                         <input
                           type="checkbox"

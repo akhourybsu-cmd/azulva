@@ -161,6 +161,36 @@ export interface DealVote {
   createdAt: string;
 }
 
+export interface DestinationVote {
+  id: string;
+  tripRoomId: string;
+  destinationId: string;
+  userId: string;
+  userName: string;
+  voteType: VoteType;
+  comment?: string;
+  createdAt: string;
+}
+
+export interface TripRoomMemberPreferences {
+  preferredBudgetPerPerson?: number;
+  preferredMonths?: number[];
+  preferredDestinations?: string[];
+  adultsOnlyPreference?: "yes" | "no" | "either";
+  familyFriendlyPreference?: "yes" | "no" | "either";
+  maxFlightStops?: number;
+  preferredTripLength?: number;
+  travelStyleTags?: string[];
+}
+
+export interface TripRoomMember {
+  userId: string;
+  displayName: string;
+  avatarUrl?: string | null;
+  role: "owner" | "member";
+  preferences?: TripRoomMemberPreferences;
+}
+
 export interface TripRoom {
   id: string;
   ownerId: string;
@@ -175,7 +205,10 @@ export interface TripRoom {
   tripType: "friends" | "couples" | "family" | "bachelor" | "bachelorette";
   inviteCode: string;
   memberNames: string[];
+  members?: TripRoomMember[];
   dealIds: string[];
+  destinationIds: string[];
+  destinationVotes?: DestinationVote[];
   createdAt: string;
 }
 
@@ -185,3 +218,4 @@ export interface OutboundClick {
   outboundUrl: string;
   clickedAt: string;
 }
+
