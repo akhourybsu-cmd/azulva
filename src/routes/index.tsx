@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-const SORTS = ["Best Deal Score", "Lowest Price", "Highest Resort Rating", "Newest", "Expiring Soon"] as const;
+const SORTS = ["Best Azulva Score", "Lowest Price", "Highest Resort Rating", "Newest", "Expiring Soon"] as const;
 type Sort = typeof SORTS[number];
 
 function HomePage() {
