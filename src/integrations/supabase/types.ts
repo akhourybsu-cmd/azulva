@@ -120,12 +120,15 @@ export type Database = {
         Row: {
           affiliate_supported: boolean
           api_supported: boolean
+          approved_linking_method: string | null
           base_url: string | null
           created_at: string
+          default_disclaimer: string | null
           enabled: boolean
           id: string
           name: string
           notes: string | null
+          requires_manual_verification: boolean
           slug: string
           source_type: string
           trust_level: string
@@ -134,12 +137,15 @@ export type Database = {
         Insert: {
           affiliate_supported?: boolean
           api_supported?: boolean
+          approved_linking_method?: string | null
           base_url?: string | null
           created_at?: string
+          default_disclaimer?: string | null
           enabled?: boolean
           id?: string
           name: string
           notes?: string | null
+          requires_manual_verification?: boolean
           slug: string
           source_type: string
           trust_level?: string
@@ -148,12 +154,15 @@ export type Database = {
         Update: {
           affiliate_supported?: boolean
           api_supported?: boolean
+          approved_linking_method?: string | null
           base_url?: string | null
           created_at?: string
+          default_disclaimer?: string | null
           enabled?: boolean
           id?: string
           name?: string
           notes?: string | null
+          requires_manual_verification?: boolean
           slug?: string
           source_type?: string
           trust_level?: string
@@ -250,42 +259,60 @@ export type Database = {
       outbound_clicks: {
         Row: {
           affiliate_url: string | null
+          clicked_from: string | null
           created_at: string
           deal_id: string
           departure_airport: string | null
           destination_id: string | null
+          direct_source_used: boolean
+          generated_affiliate_used: boolean
           id: string
+          manual_affiliate_used: boolean
           outbound_url: string | null
           referrer: string | null
           source: string | null
           source_id: string | null
+          trip_room_id: string | null
           user_id: string | null
+          watchlist_id: string | null
         }
         Insert: {
           affiliate_url?: string | null
+          clicked_from?: string | null
           created_at?: string
           deal_id: string
           departure_airport?: string | null
           destination_id?: string | null
+          direct_source_used?: boolean
+          generated_affiliate_used?: boolean
           id?: string
+          manual_affiliate_used?: boolean
           outbound_url?: string | null
           referrer?: string | null
           source?: string | null
           source_id?: string | null
+          trip_room_id?: string | null
           user_id?: string | null
+          watchlist_id?: string | null
         }
         Update: {
           affiliate_url?: string | null
+          clicked_from?: string | null
           created_at?: string
           deal_id?: string
           departure_airport?: string | null
           destination_id?: string | null
+          direct_source_used?: boolean
+          generated_affiliate_used?: boolean
           id?: string
+          manual_affiliate_used?: boolean
           outbound_url?: string | null
           referrer?: string | null
           source?: string | null
           source_id?: string | null
+          trip_room_id?: string | null
           user_id?: string | null
+          watchlist_id?: string | null
         }
         Relationships: [
           {

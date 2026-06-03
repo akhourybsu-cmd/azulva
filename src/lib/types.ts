@@ -218,6 +218,15 @@ export interface TripRoom {
   createdAt: string;
 }
 
+export type ClickedFrom =
+  | "deal_detail"
+  | "deal_card"
+  | "escape_board"
+  | "trip_room"
+  | "watchlist"
+  | "admin_preview"
+  | "other";
+
 export interface OutboundClick {
   id: string;
   dealId: string;
@@ -228,6 +237,12 @@ export interface OutboundClick {
   departureAirport?: string | null;
   referrer?: string | null;
   clickedAt: string;
+  clickedFrom?: ClickedFrom;
+  tripRoomId?: string | null;
+  watchlistId?: string | null;
+  generatedAffiliateUsed?: boolean;
+  manualAffiliateUsed?: boolean;
+  directSourceUsed?: boolean;
 }
 
 export interface DealSource {

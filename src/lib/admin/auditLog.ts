@@ -6,7 +6,8 @@ export type AuditAction =
   | "archive_deal" | "restore_deal" | "expire_deal" | "flag_deal" | "unflag_deal"
   | "mark_verified" | "recalculate_score" | "add_snapshot"
   | "import_csv_batch" | "update_app_setting"
-  | "create_deal_source" | "update_deal_source" | "delete_deal_source";
+  | "create_deal_source" | "update_deal_source" | "delete_deal_source"
+  | "generate_affiliate_link";
 
 export interface AuditLogEntry {
   id: string;

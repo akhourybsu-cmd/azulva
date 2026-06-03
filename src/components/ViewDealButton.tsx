@@ -1,13 +1,17 @@
 // Renders an outbound CTA that records a tracked click before redirecting.
 import { ExternalLink } from "lucide-react";
-import type { Deal } from "@/lib/types";
+import type { ClickedFrom, Deal } from "@/lib/types";
 import { storeActions } from "@/lib/store";
 import { describeAffiliateState } from "@/lib/affiliates/AffiliateLinkService";
 
-function chooseUrl(deal: Pick<Deal, "sourceUrl" | "affiliateUrl" | "generatedAffiliateUrl">) {
+type UrlPick = { url: string; kind: "direct" | "manual_affiliate" | "generated_affiliate" } | null;
+
+function chooseUrl(deal: Pick<Deal, "sourceUrl" | "affiliateUrl" | "generatedAffiliateUrl">): UrlPick {
   const s = describeAffiliateState(deal.sourceUrl, deal.affiliateUrl, deal.generatedAffiliateUrl);
-  if (s.kind === "none") return null;
-  return s.url;
+  if (s.kind === "direct" || s.kind === "manual_affiliate" || s.kind === "generated_affiliate") {
+    return { url: s.url, kind: s.kind };
+  }
+  return null;
 }
 
 export function ViewDealButton({
@@ -15,20 +19,27 @@ export function ViewDealButton({
   className,
   children,
   referrer,
+  clickedFrom,
+  tripRoomId,
+  watchlistId,
 }: {
   deal: Deal;
   className?: string;
   children?: React.ReactNode;
   referrer?: string;
+  clickedFrom?: ClickedFrom;
+  tripRoomId?: string | null;
+  watchlistId?: string | null;
 }) {
-  const url = chooseUrl(deal);
-  if (!url) {
+  const picked = chooseUrl(deal);
+  if (!picked) {
     return (
       <span className={`${className ?? ""} cursor-not-allowed opacity-60`} title="No outbound URL configured">
         {children ?? "View Deal"}
       </span>
     );
   }
+  const { url, kind } = picked;
   return (
     <a
       href={url}
@@ -45,6 +56,12 @@ export function ViewDealButton({
           departureAirport: deal.departureAirport,
           referrer: referrer ?? (typeof window !== "undefined" ? window.location.pathname : null),
           clickedAt: new Date().toISOString(),
+          clickedFrom: clickedFrom ?? "other",
+          tripRoomId: tripRoomId ?? null,
+          watchlistId: watchlistId ?? null,
+          generatedAffiliateUsed: kind === "generated_affiliate",
+          manualAffiliateUsed: kind === "manual_affiliate",
+          directSourceUsed: kind === "direct",
         })
       }
       className={className}
