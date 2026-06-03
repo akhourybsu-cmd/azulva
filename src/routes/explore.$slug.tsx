@@ -49,6 +49,7 @@ function DestinationDetail() {
             ))}
             <span className="ml-auto inline-flex items-center gap-2">
               <SaveDestinationButton destinationId={dest.id} variant="full" />
+              <SuggestToTripRoomButton destinationId={dest.id} />
               <a
                 href={`/watchlist?destination=${dest.id}`}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-sm font-medium text-background hover:opacity-90"
