@@ -7,6 +7,7 @@ export type ReadinessState =
   | "needs_review"
   | "missing_critical"
   | "expired"
+  | "archived"
   | "flagged";
 
 export interface ReadinessReport {
@@ -33,7 +34,8 @@ export function getReadiness(d: Deal): ReadinessReport {
   if (!d.sourceConfidence || d.sourceConfidence === "unknown") warnings.push("source confidence unknown");
 
   let state: ReadinessState;
-  if (d.status === "flagged") state = "flagged";
+  if (d.status === "archived") state = "archived";
+  else if (d.status === "flagged") state = "flagged";
   else if (d.status === "expired") state = "expired";
   else if (missing.length > 0) state = "missing_critical";
   else if (warnings.length > 0 || d.status !== "active") state = "needs_review";
@@ -57,6 +59,7 @@ export function readinessLabel(s: ReadinessState): string {
     case "needs_review": return "Needs Review";
     case "missing_critical": return "Missing Critical Info";
     case "expired": return "Expired";
+    case "archived": return "Archived";
     case "flagged": return "Flagged";
   }
 }
@@ -67,6 +70,7 @@ export function readinessColorClass(s: ReadinessState): string {
     case "needs_review": return "bg-[var(--warning)]/15 text-[var(--warning)]";
     case "missing_critical": return "bg-destructive/15 text-destructive";
     case "expired": return "bg-muted text-muted-foreground";
+    case "archived": return "bg-muted text-muted-foreground";
     case "flagged": return "bg-destructive/15 text-destructive";
   }
 }

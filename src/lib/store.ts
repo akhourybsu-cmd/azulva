@@ -437,25 +437,30 @@ export const storeActions = {
 
 import { shouldHideSampleDeals } from "./appMode";
 
-/** All deals including mock samples — for admin & internal lookups. */
+function filterUserFacing(list: Deal[]): Deal[] {
+  const noArchived = list.filter((d) => d.status !== "archived");
+  return shouldHideSampleDeals()
+    ? noArchived.filter((d) => d.sourceLabel !== "Sample Deal")
+    : noArchived;
+}
+
+/** All deals including mock samples & archived — for admin & internal lookups. */
 export function allDealsAdmin(): Deal[] {
   return [...state.customDeals, ...mockDeals];
 }
 
-/** User-facing deals: hides "Sample Deal" entries in production mode. */
+/** User-facing deals: hides archived; hides "Sample Deal" entries in production mode. */
 export function allDeals(): Deal[] {
-  const list = [...state.customDeals, ...mockDeals];
-  return shouldHideSampleDeals() ? list.filter((d) => d.sourceLabel !== "Sample Deal") : list;
+  return filterUserFacing([...state.customDeals, ...mockDeals]);
 }
 
-/** User-facing hook: hides samples in production mode. */
+/** User-facing hook. */
 export function useAllDeals() {
   const s = useStore();
-  const list = [...s.customDeals, ...mockDeals];
-  return shouldHideSampleDeals() ? list.filter((d) => d.sourceLabel !== "Sample Deal") : list;
+  return filterUserFacing([...s.customDeals, ...mockDeals]);
 }
 
-/** Admin hook: always includes sample deals. */
+/** Admin hook: always includes sample & archived deals. */
 export function useAllDealsAdmin() {
   const s = useStore();
   return [...s.customDeals, ...mockDeals];

@@ -53,6 +53,13 @@ export function unflagDeal(d: Deal): Deal {
 export function expireDeal(d: Deal): Deal {
   return { ...d, status: "expired", expiresAt: d.expiresAt ?? new Date().toISOString() };
 }
+export function archiveDeal(d: Deal): Deal {
+  return {
+    ...d,
+    status: "archived",
+    adminNotes: [d.adminNotes, `Archived ${new Date().toISOString()}`].filter(Boolean).join("\n"),
+  };
+}
 export function restoreDeal(d: Deal): Deal {
   return { ...d, status: "active" };
 }
