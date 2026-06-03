@@ -31,6 +31,8 @@ import {
   recalculateScore,
   duplicateDeal,
 } from "@/lib/admin/dealOps";
+import { getReadiness, readinessLabel, readinessColorClass } from "@/lib/dealReadiness";
+import { getAppMode, isProductionMode } from "@/lib/appMode";
 import type { Deal } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
