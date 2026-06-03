@@ -12,6 +12,7 @@ import { DealDestinationContextCard } from "@/components/DestinationIntelligence
 import { DealTrustPills } from "@/components/DealTrustPills";
 import { ViewDealButton } from "@/components/ViewDealButton";
 import { loadSnapshotsForDeal, type PriceSnapshotRow } from "@/lib/admin/priceSnapshots";
+import { loadDealSources, type DealSourceRow } from "@/lib/admin/dealSources";
 import { freshnessOf, freshnessLabel } from "@/lib/dealFreshness";
 import { formatDistanceToNow } from "date-fns";
 
@@ -29,9 +30,12 @@ function DealDetailPage() {
   const resort = mockResorts.find((r) => r.id === deal.resortId)!;
   const fallbackHistory = useMemo(() => mockPriceHistoryForDeal(deal.id), [deal.id]);
   const [snapshots, setSnapshots] = useState<PriceSnapshotRow[]>([]);
+  const [sources, setSources] = useState<DealSourceRow[]>([]);
   useEffect(() => {
     loadSnapshotsForDeal(deal.id).then(setSnapshots).catch(() => {});
+    loadDealSources().then(setSources).catch(() => {});
   }, [deal.id]);
+  const dealSource = sources.find((s) => s.id === deal.sourceId) ?? null;
   const history = snapshots.length >= 2
     ? snapshots.map((s) => ({ capturedAt: s.captured_at, pricePerPerson: Number(s.price_per_person) }))
     : fallbackHistory;
