@@ -2,15 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { DealCard } from "@/components/DealCard";
+import { LandingPage } from "@/components/LandingPage";
 import { useAllDeals } from "@/lib/store";
+import { useAuth } from "@/hooks/use-auth";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { Search, SlidersHorizontal, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Today's Best Escapes — Azulva" },
-      { name: "description", content: "Hand-curated, Azulva-scored all-inclusive vacation deals — updated daily." },
+      { title: "Azulva — Find the all-inclusive trip everyone agrees on" },
+      { name: "description", content: "Track resort deals, compare escapes, vote with friends, and join the Azulva early access waitlist." },
     ],
   }),
   component: HomePage,
@@ -20,6 +22,12 @@ const SORTS = ["Best Azulva Score", "Lowest Price", "Highest Resort Rating", "Ne
 type Sort = typeof SORTS[number];
 
 function HomePage() {
+  const { user, loading } = useAuth();
+  if (!loading && !user) return <LandingPage />;
+  return <DealFeed />;
+}
+
+function DealFeed() {
   const deals = useAllDeals();
   const [airport, setAirport] = useState<string>("Any");
   const [destination, setDestination] = useState<string>("Any");
