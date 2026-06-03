@@ -148,15 +148,20 @@ function DealDetailPage() {
               <Row icon={<Plane className="h-4 w-4" />} v={`From ${deal.departureAirport}`} />
               <Row icon={<Flag className="h-4 w-4" />} v={`Source: ${deal.sourceLabel}`} />
             </div>
-            <a
-              href={deal.affiliateUrl ?? deal.sourceUrl}
-              target="_blank" rel="noopener noreferrer"
-              onClick={() => storeActions.recordOutboundClick({ id: crypto.randomUUID(), dealId: deal.id, outboundUrl: deal.affiliateUrl ?? deal.sourceUrl, clickedAt: new Date().toISOString() })}
+            <div className="mt-4 flex flex-wrap gap-1.5"><DealTrustPills deal={deal} /></div>
+            <ViewDealButton
+              deal={deal}
+              referrer={`/deals/${deal.id}`}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ocean)] to-[var(--coral)] py-3 text-sm font-semibold text-primary-foreground shadow"
             >
-              Continue to booking partner <ExternalLink className="h-4 w-4" />
-            </a>
-            <p className="mt-2 text-[11px] text-muted-foreground">Price should be verified before booking. We don't process bookings directly.</p>
+              Continue to booking partner
+            </ViewDealButton>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              <ShieldCheck className="mr-1 inline h-3 w-3" />
+              Last checked <span suppressHydrationWarning>{formatDistanceToNow(new Date(deal.lastCheckedAt), { addSuffix: true })}</span>
+              {" · "}{freshnessLabel(freshness)}.
+              Prices and inclusions should be verified with the booking provider before purchase.
+            </p>
             <button
               onClick={() => storeActions.toggleSaved(deal.id)}
               className="mt-2 w-full rounded-xl border border-border py-2 text-sm hover:bg-muted"
@@ -164,6 +169,7 @@ function DealDetailPage() {
               Save to watchlist
             </button>
           </div>
+
 
           <AddToTripButton dealId={deal.id} />
 
