@@ -199,6 +199,11 @@ function DealDetailPage() {
                 <li>All-inclusive confidence: {deal.allInclusiveConfidence}</li>
                 <li>Outbound link: {deal.generatedAffiliateUrl ? "Affiliate link" : deal.affiliateUrl ? "Affiliate link" : deal.sourceUrl ? "Direct source link" : "Source unavailable"}</li>
               </ul>
+              {dealSource?.default_disclaimer && (
+                <p className="mt-2 rounded-md border border-border/60 bg-muted/40 p-2 text-[11px] italic">
+                  {dealSource.default_disclaimer}
+                </p>
+              )}
               <p className="mt-2"><ShieldCheck className="mr-1 inline h-3 w-3" />Prices and inclusions should be verified with the booking provider before purchase.</p>
               <p className="mt-1 italic">Some outbound links may be affiliate links. Azulva may earn a commission at no additional cost to you.</p>
             </div>
