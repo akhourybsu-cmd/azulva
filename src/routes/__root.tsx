@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -11,9 +11,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { supabase } from "@/integrations/supabase/client";
-import { Toaster as SonnerToaster } from "sonner";
-import appIcon from "@/assets/azulva-app-icon.png.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -80,23 +77,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Azulva — Find the all-inclusive trip everyone actually agrees on" },
-      { name: "description", content: "Find, watch, compare, and choose better all-inclusive trips with friends." },
-      { name: "application-name", content: "Azulva" },
-      { name: "apple-mobile-web-app-title", content: "Azulva" },
-      { name: "theme-color", content: "#1266E6" },
-      { property: "og:title", content: "Azulva" },
-      { property: "og:description", content: "Find, watch, compare, and choose better all-inclusive trips with friends." },
-      { property: "og:site_name", content: "Azulva" },
+      { title: "All-Inclusive Scout — Find the best all-inclusive vacation deals" },
+      { name: "description", content: "Discover, compare, watch, and group-vote on all-inclusive vacation deals from trusted partners." },
+      { property: "og:title", content: "All-Inclusive Scout — Find the best all-inclusive vacation deals" },
+      { property: "og:description", content: "Discover, compare, watch, and group-vote on all-inclusive vacation deals from trusted partners." },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: appIcon.url },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: appIcon.url },
+      { name: "twitter:title", content: "All-Inclusive Scout — Find the best all-inclusive vacation deals" },
+      { name: "twitter:description", content: "Discover, compare, watch, and group-vote on all-inclusive vacation deals from trusted partners." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XMOQ5qzqAbVn8nqqFv5WIuUgBBr1/social-images/social-1780526470359-ChatGPT_Image_Jun_3,_2026,_06_41_04_PM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/XMOQ5qzqAbVn8nqqFv5WIuUgBBr1/social-images/social-1780526470359-ChatGPT_Image_Jun_3,_2026,_06_41_04_PM.webp" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/png", href: appIcon.url },
-      { rel: "apple-touch-icon", href: appIcon.url },
+      {
+        rel: "stylesheet",
+        href: appCss,
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -124,24 +120,8 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthListener />
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <SonnerToaster />
     </QueryClientProvider>
   );
-}
-
-function AuthListener() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    // Hydrate DB-backed app settings (app_mode, sample-deal visibility, etc.)
-    import("@/lib/admin/appSettings").then((m) => m.loadAppSettings().catch(() => {}));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      queryClient.invalidateQueries();
-      router.invalidate();
-    });
-    return () => subscription.unsubscribe();
-  }, [router, queryClient]);
-  return null;
 }
