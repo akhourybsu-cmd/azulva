@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <ul className="space-y-1 text-muted-foreground">
                 <li><Link to="/about">About</Link></li>
                 <li><Link to="/contact">Contact</Link></li>
-                <li><Link to="/how-scores-work">How Deal Scores Work</Link></li>
+                <li><Link to="/how-scores-work">How the Azulva Score works</Link></li>
               </ul>
             </div>
             <div>
