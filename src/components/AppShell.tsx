@@ -20,8 +20,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <MapPin className="h-5 w-5" />
             </div>
             <div className="leading-tight">
-              <div className="font-display text-lg font-semibold">All-Inclusive Scout</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Find. Compare. Group-vote.</div>
+              <div className="font-display text-lg font-semibold">Azulva</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Beach trips, agreed on together.</div>
             </div>
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
@@ -69,8 +69,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="grid gap-6 md:grid-cols-4 text-sm">
             <div>
-              <div className="font-display text-lg">All-Inclusive Scout</div>
-              <p className="mt-2 text-muted-foreground">Hunt down the best all-inclusive vacations — together.</p>
+              <div className="font-display text-lg">Azulva</div>
+              <p className="mt-2 text-muted-foreground">Find the all-inclusive trip everyone actually agrees on.</p>
             </div>
             <div>
               <div className="font-semibold mb-2">Product</div>
@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <ul className="space-y-1 text-muted-foreground">
                 <li><Link to="/about">About</Link></li>
                 <li><Link to="/contact">Contact</Link></li>
-                <li><Link to="/how-scores-work">How Deal Scores Work</Link></li>
+                <li><Link to="/how-scores-work">How the Azulva Score works</Link></li>
               </ul>
             </div>
             <div>
@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <p className="mt-8 text-xs text-muted-foreground">
-            Some links may be affiliate links. We may earn a commission if you book through them, at no additional cost to you. Prices and availability are not guaranteed — always verify with the booking partner before purchase.
+            Azulva helps travelers discover and compare vacation deals. Some links may be affiliate links, and prices should be verified with the booking provider before purchase.
           </p>
         </div>
       </footer>

@@ -74,7 +74,7 @@ export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-xs text-muted-foreground">
-              {deal.departureAirport} · {deal.nights} nights · {new Date(deal.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              {deal.departureAirport} · {deal.nights} nights · {new Date(deal.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })}
             </div>
             <div className="mt-0.5 line-clamp-2 text-sm font-medium">{deal.title}</div>
           </div>

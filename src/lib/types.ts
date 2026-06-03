@@ -1,4 +1,4 @@
-// Core domain types for All-Inclusive Scout
+// Core domain types for Azulva
 
 export type SourceLabel =
   | "Curated Deal"

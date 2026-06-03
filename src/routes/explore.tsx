@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { CloudRain, Plane, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/explore")({
-  head: () => ({ meta: [{ title: "Explore Destinations — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "Explore Escapes — Azulva" }] }),
   component: ExplorePage,
 });
 
@@ -29,7 +29,7 @@ function ExplorePage() {
   return (
     <AppShell>
       <header className="mb-6">
-        <h1 className="font-display text-3xl md:text-4xl">Explore destinations</h1>
+        <h1 className="font-display text-3xl md:text-4xl">Explore Escapes</h1>
         <p className="mt-1 text-muted-foreground">Caribbean & Mexico all-inclusive destinations, ranked by current deal activity.</p>
       </header>
 

@@ -9,14 +9,14 @@ import { Search, SlidersHorizontal, TrendingUp } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Deals — All-Inclusive Scout" },
-      { name: "description", content: "Hand-curated and AI-scored all-inclusive vacation deals, updated daily." },
+      { title: "Today's Best Escapes — Azulva" },
+      { name: "description", content: "Hand-curated, Azulva-scored all-inclusive vacation deals — updated daily." },
     ],
   }),
   component: HomePage,
 });
 
-const SORTS = ["Best Deal Score", "Lowest Price", "Highest Resort Rating", "Newest", "Expiring Soon"] as const;
+const SORTS = ["Best Azulva Score", "Lowest Price", "Highest Resort Rating", "Newest", "Expiring Soon"] as const;
 type Sort = typeof SORTS[number];
 
 function HomePage() {
@@ -26,7 +26,7 @@ function HomePage() {
   const [maxPrice, setMaxPrice] = useState<number>(3000);
   const [audience, setAudience] = useState<"any" | "adults" | "family">("any");
   const [minScore, setMinScore] = useState<number>(0);
-  const [sort, setSort] = useState<Sort>("Best Deal Score");
+  const [sort, setSort] = useState<Sort>("Best Azulva Score");
   const [q, setQ] = useState("");
 
   const airports = useMemo(() => ["Any", ...Array.from(new Set(deals.map((d) => d.departureAirport)))], [deals]);
@@ -63,10 +63,10 @@ function HomePage() {
             <TrendingUp className="h-3.5 w-3.5" /> {filtered.length} live deals · scored & ranked
           </span>
           <h1 className="mt-3 font-display text-3xl font-bold leading-tight md:text-5xl">
-            Hunt the best all-inclusive deals — together.
+            Find the all-inclusive trip everyone actually agrees on.
           </h1>
           <p className="mt-2 text-sm text-white/90 md:text-base">
-            Curated trips, transparent scoring, group voting. Built for friends and families planning the next escape.
+            Track resort deals, compare trip options, vote with friends, and know when a beach escape is actually worth booking.
           </p>
           <div className="mt-5 flex max-w-md items-center gap-2 rounded-full bg-white/95 p-1.5 text-foreground shadow-lg">
             <Search className="ml-3 h-4 w-4 text-muted-foreground" />
@@ -110,10 +110,10 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Top pick */}
+      {/* Today's Best Escape */}
       {top && (
         <section className="mt-8">
-          <h2 className="mb-3 font-display text-xl">Top pick for you</h2>
+          <h2 className="mb-3 font-display text-xl">Today's Best Escape</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <div className="lg:col-span-1"><DealCard deal={top} /></div>
             <div className="rounded-2xl border border-border bg-card p-5 text-sm lg:col-span-2">
@@ -133,7 +133,7 @@ function HomePage() {
       )}
 
       <section className="mt-10">
-        <h2 className="mb-3 font-display text-xl">All deals · {filtered.length}</h2>
+        <h2 className="mb-3 font-display text-xl">Today's Best Escapes · {filtered.length}</h2>
         {filtered.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-10 text-center text-muted-foreground">
             No deals match these filters. Loosen up?

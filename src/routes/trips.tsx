@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { VoteType, TripRoom } from "@/lib/types";
 
 export const Route = createFileRoute("/trips")({
-  head: () => ({ meta: [{ title: "Trip Rooms — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "Trip Rooms — Azulva" }] }),
   component: TripsPage,
 });
 

@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import type { ProviderHealth } from "@/lib/api/ProviderTypes";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "Azulva Admin" }] }),
   component: AdminPage,
 });
 
@@ -42,7 +42,7 @@ function AdminPage() {
 
         <div className="space-y-8">
           <section id="dash">
-            <h1 className="font-display text-3xl">Admin dashboard</h1>
+            <h1 className="font-display text-3xl">Azulva Admin</h1>
             <div className="mt-4 grid gap-3 sm:grid-cols-4">
               <Stat label="Total deals" v={deals.length} />
               <Stat label="Destinations" v={mockDestinations.length} />
