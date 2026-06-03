@@ -163,11 +163,69 @@ export type Database = {
           },
         ]
       }
+      trip_room_destination_votes: {
+        Row: {
+          comment: string | null
+          created_at: string
+          destination_id: string
+          id: string
+          room_id: string
+          updated_at: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          destination_id: string
+          id?: string
+          room_id: string
+          updated_at?: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          destination_id?: string
+          id?: string
+          room_id?: string
+          updated_at?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: []
+      }
+      trip_room_destinations: {
+        Row: {
+          added_by: string
+          created_at: string
+          destination_id: string
+          id: string
+          room_id: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          destination_id: string
+          id?: string
+          room_id: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          destination_id?: string
+          id?: string
+          room_id?: string
+        }
+        Relationships: []
+      }
       trip_room_members: {
         Row: {
           display_name: string | null
           id: string
           joined_at: string
+          preferences: Json
           role: string
           room_id: string
           user_id: string
@@ -176,6 +234,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           joined_at?: string
+          preferences?: Json
           role?: string
           room_id: string
           user_id: string
@@ -184,6 +243,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           joined_at?: string
+          preferences?: Json
           role?: string
           room_id?: string
           user_id?: string
