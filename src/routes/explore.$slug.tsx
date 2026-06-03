@@ -11,6 +11,7 @@ import {
   MoneyBasicsCard,
 } from "@/components/DestinationIntelligence";
 import { SaveDestinationButton } from "@/components/SaveDestinationButton";
+import { SuggestToTripRoomButton } from "@/components/SuggestToTripRoom";
 
 export const Route = createFileRoute("/explore/$slug")({
   component: DestinationDetail,
