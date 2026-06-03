@@ -296,3 +296,61 @@ export async function cloudJoinByCode(code: string, displayName?: string | null)
   if (error) throw error;
   return data as string;
 }
+
+// ============ profile + preferences ============
+
+export type CloudProfile = {
+  display_name: string | null;
+  avatar_url: string | null;
+  home_airport: string | null;
+};
+
+export type CloudPreferences = {
+  backupAirports: string[];
+  budgetPerPerson: number;
+  preferredDestinations: string[];
+  travelStyles: string[];
+  passportStatus: "yes" | "no" | "expiring" | "unknown";
+  notifications: { email: boolean; push: boolean; frequency: "instant" | "daily" | "weekly" };
+};
+
+export const DEFAULT_PREFERENCES: CloudPreferences = {
+  backupAirports: [],
+  budgetPerPerson: 1500,
+  preferredDestinations: [],
+  travelStyles: [],
+  passportStatus: "unknown",
+  notifications: { email: true, push: false, frequency: "daily" },
+};
+
+export async function loadProfileAndPrefs(userId: string): Promise<{ profile: CloudProfile; prefs: CloudPreferences }> {
+  const [p, pr] = await Promise.all([
+    supabase.from("profiles").select("display_name, avatar_url, home_airport").eq("id", userId).maybeSingle(),
+    supabase.from("user_preferences").select("data").eq("user_id", userId).maybeSingle(),
+  ]);
+  const profile: CloudProfile = {
+    display_name: p.data?.display_name ?? null,
+    avatar_url: p.data?.avatar_url ?? null,
+    home_airport: p.data?.home_airport ?? null,
+  };
+  const raw = (pr.data?.data as Record<string, unknown> | undefined) ?? {};
+  const prefs: CloudPreferences = { ...DEFAULT_PREFERENCES, ...(raw as Partial<CloudPreferences>) };
+  return { profile, prefs };
+}
+
+export async function saveProfile(userId: string, profile: CloudProfile) {
+  await supabase.from("profiles").upsert(
+    { id: userId, ...profile, updated_at: new Date().toISOString() },
+    { onConflict: "id" },
+  );
+}
+
+export async function savePreferences(userId: string, prefs: CloudPreferences) {
+  // Preserve other keys (e.g. migrated_v1) via a read-merge-write
+  const { data } = await supabase.from("user_preferences").select("data").eq("user_id", userId).maybeSingle();
+  const existing = (data?.data as Record<string, unknown> | undefined) ?? {};
+  await supabase.from("user_preferences").upsert(
+    { user_id: userId, data: { ...existing, ...prefs } as unknown as Json },
+    { onConflict: "user_id" },
+  );
+}
