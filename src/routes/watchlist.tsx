@@ -7,7 +7,7 @@ import { Bell, Heart, Plus, Trash2 } from "lucide-react";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 
 export const Route = createFileRoute("/watchlist")({
-  head: () => ({ meta: [{ title: "Watchlist — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "Deal Watches — Azulva" }] }),
   component: WatchlistPage,
 });
 
