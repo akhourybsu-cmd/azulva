@@ -649,3 +649,147 @@ function AuditLogSection({ audit }: { audit: AuditLogEntry[] }) {
     </section>
   );
 }
+
+type ProviderStatus = Awaited<ReturnType<typeof getAffiliateProviderStatus>>;
+
+function AffiliateSetupPanel({ deals, sources, onChange }: { deals: Deal[]; sources: DealSourceRow[]; onChange: () => void }) {
+  const [status, setStatus] = useState<ProviderStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [log, setLog] = useState<string[]>([]);
+  const fetchStatus = useServerFn(getAffiliateProviderStatus);
+  useEffect(() => { fetchStatus().then(setStatus); }, [fetchStatus]);
+
+  const tp = status?.travelpayouts;
+  const providerConfigured = !!(tp?.tokenConfigured && tp?.markerConfigured);
+  const affiliateReadySources = sources.filter((s) => s.affiliate_supported);
+  const withGenerated = deals.filter((d) => d.generatedAffiliateUrl);
+  const withManual = deals.filter((d) => !d.generatedAffiliateUrl && d.affiliateUrl);
+  const directOnly = deals.filter((d) => !d.generatedAffiliateUrl && !d.affiliateUrl && d.sourceUrl);
+  const noOutbound = deals.filter((d) => !d.generatedAffiliateUrl && !d.affiliateUrl && !d.sourceUrl);
+
+  async function generateMissing(force: boolean) {
+    setBusy(true);
+    setLog([]);
+    const targets = deals.filter((d) =>
+      d.sourceUrl && (force || !d.generatedAffiliateUrl),
+    );
+    let ok = 0, fail = 0;
+    for (const d of targets) {
+      const res = await tryGenerateAffiliateLink(d.sourceUrl, {
+        sourceSlug: sources.find((s) => s.id === d.sourceId)?.slug,
+        dealId: d.id,
+        destinationSlug: d.destinationId,
+      });
+      if (res.affiliateUrl) {
+        storeActions.updateCustomDeal(d.id, (cur) => ({ ...cur, generatedAffiliateUrl: res.affiliateUrl! }));
+        ok++;
+        setLog((l) => [...l, `✓ ${d.title}`]);
+      } else {
+        fail++;
+        setLog((l) => [...l, `✗ ${d.title} — ${res.reason}`]);
+      }
+      logAudit({ action: "generate_affiliate_link", entityType: "deal", entityId: d.id, after: { reason: res.reason, provider: res.provider } });
+    }
+    setBusy(false);
+    alert(`Generated ${ok} link(s). ${fail} failed/skipped.`);
+    onChange();
+  }
+
+  const readinessRows = [
+    { label: "Travelpayouts token", ok: !!tp?.tokenConfigured },
+    { label: "Travelpayouts marker", ok: !!tp?.markerConfigured },
+    { label: "Travelpayouts project ID (optional)", ok: !!tp?.projectIdConfigured, optional: true },
+  ];
+
+  return (
+    <section id="affiliate" className="rounded-2xl border border-border bg-card p-5">
+      <h2 className="font-display text-xl mb-3">Affiliate Setup</h2>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Connect to the relevant affiliate programs before expecting partner links to monetize.
+        If a program does not support deep links, use the approved link format from that program.
+      </p>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-xl border border-border p-3">
+          <div className="mb-2 text-sm font-semibold">Provider configuration</div>
+          <ul className="space-y-1 text-xs">
+            {readinessRows.map((r) => (
+              <li key={r.label} className="flex items-center justify-between">
+                <span>{r.label}{r.optional && <span className="ml-1 text-muted-foreground">(optional)</span>}</span>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.ok ? "bg-[var(--success)]/15 text-[var(--success)]" : "bg-[var(--warning)]/15 text-[var(--warning)]"}`}>
+                  {r.ok ? "configured" : "missing"}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {!providerConfigured && (
+            <p className="mt-2 rounded-lg border border-[var(--warning)]/30 bg-[var(--warning)]/10 p-2 text-[11px]">
+              Without a token + marker, link generation returns "not_configured" and the CTA falls back to the direct/manual URL.
+            </p>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border p-3">
+          <div className="mb-2 text-sm font-semibold">Coverage</div>
+          <ul className="space-y-1 text-xs">
+            <li className="flex justify-between"><span>Affiliate-supported sources</span><span className="tabular-nums">{affiliateReadySources.length}</span></li>
+            <li className="flex justify-between"><span>Deals with generated affiliate URL</span><span className="tabular-nums">{withGenerated.length}</span></li>
+            <li className="flex justify-between"><span>Deals with manual affiliate URL</span><span className="tabular-nums">{withManual.length}</span></li>
+            <li className="flex justify-between"><span>Deals with direct-only URL</span><span className="tabular-nums">{directOnly.length}</span></li>
+            <li className="flex justify-between"><span>Deals with no outbound URL</span><span className="tabular-nums">{noOutbound.length}</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-border p-3">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="text-sm font-semibold">Batch affiliate link generation</div>
+          <div className="flex gap-2">
+            <button onClick={() => generateMissing(false)} disabled={busy} className="rounded-full bg-foreground px-3 py-1.5 text-xs text-background disabled:opacity-60">
+              {busy ? "Generating…" : "Generate missing links"}
+            </button>
+            <button onClick={() => { if (confirm("Regenerate ALL affiliate links? Existing generated URLs will be overwritten.")) generateMissing(true); }} disabled={busy} className="rounded-full border border-border px-3 py-1.5 text-xs hover:bg-muted disabled:opacity-60">
+              Regenerate all
+            </button>
+          </div>
+        </div>
+        <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-muted-foreground">
+          {AFFILIATE_HELPER_TEXT.map((t) => <li key={t}>{t}</li>)}
+        </ul>
+        {log.length > 0 && (
+          <ul className="mt-3 max-h-40 overflow-auto rounded-lg border border-border bg-background p-2 text-[11px] font-mono">
+            {log.map((l, i) => <li key={i}>{l}</li>)}
+          </ul>
+        )}
+      </div>
+
+      <div className="mt-4 rounded-xl border border-border p-3">
+        <div className="mb-2 text-sm font-semibold">Per-deal affiliate readiness</div>
+        <div className="max-h-64 overflow-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="text-muted-foreground">
+              <tr><th className="py-1">Deal</th><th>State</th></tr>
+            </thead>
+            <tbody>
+              {deals.slice(0, 50).map((d) => {
+                const src = sources.find((s) => s.id === d.sourceId);
+                const r = describeAffiliateReadiness({
+                  sourceUrl: d.sourceUrl,
+                  affiliateUrl: d.affiliateUrl,
+                  generatedAffiliateUrl: d.generatedAffiliateUrl,
+                  sourceAffiliateSupported: src?.affiliate_supported ?? null,
+                  providerConfigured,
+                });
+                return (
+                  <tr key={d.id} className="border-t border-border/40">
+                    <td className="py-1 pr-2"><Link to="/deals/$dealId" params={{ dealId: d.id }} className="hover:underline">{d.title}</Link></td>
+                    <td>{r.label}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
+}
