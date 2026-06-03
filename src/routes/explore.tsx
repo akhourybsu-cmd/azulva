@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { CloudRain, Plane, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/explore")({
-  head: () => ({ meta: [{ title: "Explore Destinations — All-Inclusive Scout" }] }),
+  head: () => ({ meta: [{ title: "Explore Escapes — Azulva" }] }),
   component: ExplorePage,
 });
 
