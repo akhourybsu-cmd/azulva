@@ -17,6 +17,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as HowScoresWorkRouteImport } from './routes/how-scores-work'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as EscapeBoardRouteImport } from './routes/escape-board'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AffiliateDisclosureRouteImport } from './routes/affiliate-disclosure'
@@ -65,6 +66,11 @@ const HowScoresWorkRoute = HowScoresWorkRouteImport.update({
 const ExploreRoute = ExploreRouteImport.update({
   id: '/explore',
   path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EscapeBoardRoute = EscapeBoardRouteImport.update({
+  id: '/escape-board',
+  path: '/escape-board',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/escape-board': typeof EscapeBoardRoute
   '/explore': typeof ExploreRouteWithChildren
   '/how-scores-work': typeof HowScoresWorkRoute
   '/privacy': typeof PrivacyRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/escape-board': typeof EscapeBoardRoute
   '/explore': typeof ExploreRouteWithChildren
   '/how-scores-work': typeof HowScoresWorkRoute
   '/privacy': typeof PrivacyRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/affiliate-disclosure': typeof AffiliateDisclosureRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/escape-board': typeof EscapeBoardRoute
   '/explore': typeof ExploreRouteWithChildren
   '/how-scores-work': typeof HowScoresWorkRoute
   '/privacy': typeof PrivacyRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/affiliate-disclosure'
     | '/auth'
     | '/contact'
+    | '/escape-board'
     | '/explore'
     | '/how-scores-work'
     | '/privacy'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/affiliate-disclosure'
     | '/auth'
     | '/contact'
+    | '/escape-board'
     | '/explore'
     | '/how-scores-work'
     | '/privacy'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/affiliate-disclosure'
     | '/auth'
     | '/contact'
+    | '/escape-board'
     | '/explore'
     | '/how-scores-work'
     | '/privacy'
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   AffiliateDisclosureRoute: typeof AffiliateDisclosureRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  EscapeBoardRoute: typeof EscapeBoardRoute
   ExploreRoute: typeof ExploreRouteWithChildren
   HowScoresWorkRoute: typeof HowScoresWorkRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       path: '/explore'
       fullPath: '/explore'
       preLoaderRoute: typeof ExploreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/escape-board': {
+      id: '/escape-board'
+      path: '/escape-board'
+      fullPath: '/escape-board'
+      preLoaderRoute: typeof EscapeBoardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -401,6 +421,7 @@ const rootRouteChildren: RootRouteChildren = {
   AffiliateDisclosureRoute: AffiliateDisclosureRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  EscapeBoardRoute: EscapeBoardRoute,
   ExploreRoute: ExploreRouteWithChildren,
   HowScoresWorkRoute: HowScoresWorkRoute,
   PrivacyRoute: PrivacyRoute,

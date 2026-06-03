@@ -125,12 +125,12 @@ function EscapeBoardPage() {
                       >
                         View destination
                       </Link>
-                      <Link
-                        to="/watchlist" search={{ destination: d.id } as never}
+                      <a
+                        href={`/watchlist?destination=${d.id}`}
                         className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs hover:bg-muted"
                       >
                         <Bell className="h-3.5 w-3.5" /> Create Deal Watch
-                      </Link>
+                      </a>
                       <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-muted-foreground">
                         <input
                           type="checkbox"
