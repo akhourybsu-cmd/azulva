@@ -110,7 +110,7 @@ export interface Deal {
   flexibilityScore: number;
   urgencyScore: number;
   allInclusiveConfidence: AllInclusiveConfidence;
-  status: "active" | "expiring" | "expired" | "draft" | "flagged";
+  status: "active" | "expiring" | "expired" | "draft" | "flagged" | "archived";
   flaggedReason?: string;
   adminNotes?: string;
   sourceConfidence?: "high" | "medium" | "low" | "unknown";
