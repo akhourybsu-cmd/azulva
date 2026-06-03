@@ -238,6 +238,44 @@ function ImportPage() {
           </div>
         )}
       </section>
+
+      <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <h2 className="font-display text-xl mb-3">Import history</h2>
+        {history.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No prior imports recorded.</p>
+        ) : (
+          <div className="overflow-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="py-1.5">When</th>
+                  <th>File</th>
+                  <th>Mode</th>
+                  <th>Total</th>
+                  <th>Imported</th>
+                  <th>Dupes</th>
+                  <th>Errors</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((b) => (
+                  <tr key={b.id} className="border-t border-border">
+                    <td className="py-1.5" suppressHydrationWarning>{new Date(b.created_at).toLocaleString()}</td>
+                    <td>{b.filename ?? "—"}</td>
+                    <td>{b.mode}</td>
+                    <td>{b.total_rows}</td>
+                    <td>{b.imported_count}</td>
+                    <td>{b.duplicate_count}</td>
+                    <td>{b.error_count}</td>
+                    <td>{b.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </AppShell>
   );
 }
