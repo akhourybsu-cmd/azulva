@@ -182,6 +182,7 @@ function DealDetailPage() {
             <ViewDealButton
               deal={deal}
               referrer={`/deals/${deal.id}`}
+              clickedFrom="deal_detail"
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ocean)] to-[var(--coral)] py-3 text-sm font-semibold text-primary-foreground shadow"
             >
               Continue to booking partner

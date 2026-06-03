@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Plane, Hotel, Utensils, Car, Briefcase, RefreshCw, Plus, AlertCircle, CheckCircle2, HelpCircle, X } from "lucide-react";
-import type { Deal, InclusionState, DealScoreLabel, AllInclusiveConfidence } from "@/lib/types";
+import type { Deal, InclusionState, DealScoreLabel, AllInclusiveConfidence, ClickedFrom } from "@/lib/types";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { storeActions, useStore } from "@/lib/store";
@@ -38,7 +38,19 @@ function ConfidenceBadge({ c }: { c: AllInclusiveConfidence }) {
   return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${m.cls}`}>{m.label}</span>;
 }
 
-export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
+export function DealCard({
+  deal,
+  compact,
+  clickedFrom,
+  tripRoomId,
+  watchlistId,
+}: {
+  deal: Deal;
+  compact?: boolean;
+  clickedFrom?: ClickedFrom;
+  tripRoomId?: string | null;
+  watchlistId?: string | null;
+}) {
   const dest = mockDestinations.find((d) => d.id === deal.destinationId);
   const resort = mockResorts.find((r) => r.id === deal.resortId);
   const s = useStore();
@@ -118,6 +130,9 @@ export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
               </Link>
               <ViewDealButton
                 deal={deal}
+                clickedFrom={clickedFrom ?? "deal_card"}
+                tripRoomId={tripRoomId ?? null}
+                watchlistId={watchlistId ?? null}
                 className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted"
               >
                 Book
