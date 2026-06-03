@@ -40,6 +40,7 @@ import { loadRecentAudit, type AuditLogEntry } from "@/lib/admin/auditLog";
 import { tryGenerateAffiliateLink, AFFILIATE_HELPER_TEXT, describeAffiliateReadiness } from "@/lib/affiliates/AffiliateLinkService";
 import { getAffiliateProviderStatus } from "@/lib/affiliates/providerStatus.functions";
 import type { Deal } from "@/lib/types";
+import { WaitlistSection, FeedbackSection } from "@/components/admin/WaitlistSection";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Azulva Admin" }] }),
