@@ -63,7 +63,7 @@ function HomePage() {
             <TrendingUp className="h-3.5 w-3.5" /> {filtered.length} live deals · scored & ranked
           </span>
           <h1 className="mt-3 font-display text-3xl font-bold leading-tight md:text-5xl">
-            Hunt the best all-inclusive deals — together.
+            Find the all-inclusive trip everyone actually agrees on.
           </h1>
           <p className="mt-2 text-sm text-white/90 md:text-base">
             Curated trips, transparent scoring, group voting. Built for friends and families planning the next escape.
