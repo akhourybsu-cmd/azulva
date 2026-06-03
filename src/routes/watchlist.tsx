@@ -104,12 +104,29 @@ function WatchlistPage() {
   );
 }
 
-function NewWatchlistForm({ onDone }: { onDone: () => void }) {
+function NewWatchlistForm({ onDone, prefillDest }: { onDone: () => void; prefillDest?: string | null }) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [airport, setAirport] = useState("BOS");
   const [maxPrice, setMaxPrice] = useState(1500);
   const [minScore, setMinScore] = useState(75);
-  const [dest, setDest] = useState<string>("Anywhere");
+  const [dest, setDest] = useState<string>(prefillDest ?? "Anywhere");
+
+  // Prefill airport + budget from saved profile preferences.
+  useEffect(() => {
+    let active = true;
+    if (!user) return;
+    loadProfileAndPrefs(user.id).then(({ profile, prefs }) => {
+      if (!active) return;
+      if (profile.home_airport) setAirport(profile.home_airport);
+      if (prefs.budgetPerPerson) setMaxPrice(prefs.budgetPerPerson);
+      if (prefillDest) {
+        const d = mockDestinations.find((x) => x.id === prefillDest);
+        if (d) setName(`Deals to ${d.name}`);
+      }
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [user?.id, prefillDest]);
   return (
     <form
       onSubmit={(e) => {
