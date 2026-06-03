@@ -34,7 +34,9 @@ function WatchlistPage() {
       <section className="mt-6">
         <h2 className="mb-3 flex items-center gap-2 font-display text-xl"><Bell className="h-5 w-5" /> Saved searches</h2>
         {s.watchlists.length === 0 ? (
-          <p className="text-muted-foreground">No saved searches yet.</p>
+          <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+            No saved searches yet. Create a Deal Watch to get alerts when matching escapes appear.
+          </div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {s.watchlists.map((w) => {
