@@ -4,6 +4,7 @@ import { mockDestinations } from "@/lib/data/mockDestinations";
 import { useAllDeals } from "@/lib/store";
 import { useMemo } from "react";
 import { CloudRain, Plane, ShieldCheck } from "lucide-react";
+import { SaveDestinationButton } from "@/components/SaveDestinationButton";
 
 export const Route = createFileRoute("/explore")({
   head: () => ({ meta: [{ title: "Explore Escapes — Azulva" }] }),
