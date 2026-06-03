@@ -12,35 +12,44 @@ export type DealSourceRow = {
   enabled: boolean;
   trust_level: "high" | "medium" | "low" | "unknown";
   notes: string | null;
+  approved_linking_method?: string | null;
+  requires_manual_verification?: boolean;
+  default_disclaimer?: string | null;
 };
+
+const COLUMNS =
+  "id, name, slug, source_type, base_url, affiliate_supported, api_supported, enabled, trust_level, notes, approved_linking_method, requires_manual_verification, default_disclaimer";
 
 export async function loadDealSources(): Promise<DealSourceRow[]> {
   const { data, error } = await supabase
     .from("deal_sources")
-    .select("id, name, slug, source_type, base_url, affiliate_supported, api_supported, enabled, trust_level, notes")
+    .select(COLUMNS)
     .order("name");
   if (error || !data) return [];
-  return data as DealSourceRow[];
+  return data as unknown as DealSourceRow[];
 }
 
 export async function upsertDealSource(s: Omit<DealSourceRow, "id"> & { id?: string }) {
+  const payload = {
+    name: s.name,
+    slug: s.slug,
+    source_type: s.source_type,
+    base_url: s.base_url,
+    affiliate_supported: s.affiliate_supported,
+    api_supported: s.api_supported,
+    enabled: s.enabled,
+    trust_level: s.trust_level,
+    notes: s.notes,
+    approved_linking_method: s.approved_linking_method ?? null,
+    requires_manual_verification: s.requires_manual_verification ?? false,
+    default_disclaimer: s.default_disclaimer ?? null,
+  };
   if (s.id) {
-    const { error } = await supabase
-      .from("deal_sources")
-      .update({
-        name: s.name, slug: s.slug, source_type: s.source_type, base_url: s.base_url,
-        affiliate_supported: s.affiliate_supported, api_supported: s.api_supported,
-        enabled: s.enabled, trust_level: s.trust_level, notes: s.notes,
-      })
-      .eq("id", s.id);
+    const { error } = await supabase.from("deal_sources").update(payload).eq("id", s.id);
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   }
-  const { error } = await supabase.from("deal_sources").insert({
-    name: s.name, slug: s.slug, source_type: s.source_type, base_url: s.base_url,
-    affiliate_supported: s.affiliate_supported, api_supported: s.api_supported,
-    enabled: s.enabled, trust_level: s.trust_level, notes: s.notes,
-  });
+  const { error } = await supabase.from("deal_sources").insert(payload);
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }
