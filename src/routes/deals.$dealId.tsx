@@ -42,7 +42,7 @@ function DealDetailPage() {
 
           <section className="mt-6 rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl">Deal Score · {deal.dealScore}</h2>
+              <h2 className="font-display text-xl">Azulva Score · {deal.dealScore}</h2>
               <span className="rounded-full bg-foreground px-3 py-1 text-xs font-semibold text-background">{deal.dealScoreLabel}</span>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">{deal.dealScoreExplanation}</p>
