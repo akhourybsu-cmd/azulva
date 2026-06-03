@@ -21,7 +21,7 @@ function WatchlistPage() {
     <AppShell>
       <header className="mb-6 flex items-end justify-between">
         <div>
-          <h1 className="font-display text-3xl md:text-4xl">Your watchlist</h1>
+          <h1 className="font-display text-3xl md:text-4xl">Deal Watches</h1>
           <p className="text-muted-foreground">Saved deals + searches we'll keep an eye on.</p>
         </div>
         <button onClick={() => setShowNew((v) => !v)} className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm text-background">
