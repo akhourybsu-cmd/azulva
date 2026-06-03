@@ -357,6 +357,42 @@ export type Database = {
           },
         ]
       }
+      pilot_qa_checks: {
+        Row: {
+          area: string
+          check_key: string
+          created_at: string
+          id: string
+          label: string
+          notes: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          area: string
+          check_key: string
+          created_at?: string
+          id?: string
+          label: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          area?: string
+          check_key?: string
+          created_at?: string
+          id?: string
+          label?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       price_snapshots: {
         Row: {
           captured_at: string

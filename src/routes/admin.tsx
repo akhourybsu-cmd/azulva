@@ -41,6 +41,7 @@ import { tryGenerateAffiliateLink, AFFILIATE_HELPER_TEXT, describeAffiliateReadi
 import { getAffiliateProviderStatus } from "@/lib/affiliates/providerStatus.functions";
 import type { Deal } from "@/lib/types";
 import { WaitlistSection, FeedbackSection } from "@/components/admin/WaitlistSection";
+import { PilotQASection, PilotReadinessPanel, FirstDealPackSection } from "@/components/admin/PilotQASection";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Azulva Admin" }] }),
@@ -135,6 +136,9 @@ function AdminPage() {
   const adminLinks = [
     { label: "Dashboard", to: "#dash" },
     { label: "Launch Readiness", to: "#launch" },
+    { label: "Pilot Readiness", to: "#pilot-readiness" },
+    { label: "Pilot QA", to: "#pilot-qa" },
+    { label: "First Deal Pack", to: "#first-deal-pack" },
     { label: "Settings", to: "#settings" },
     { label: "Deals", to: "#deals" },
     { label: "Deal Quality", to: "#quality" },
@@ -181,6 +185,12 @@ function AdminPage() {
           </section>
 
           <LaunchReadinessPanel deals={deals} sources={sources} settings={settings} />
+
+          <PilotReadinessPanel deals={deals} settings={settings} />
+
+          <FirstDealPackSection deals={deals} />
+
+          <PilotQASection />
 
           <SettingsPanel settings={settings} onChanged={loadAll} />
 
