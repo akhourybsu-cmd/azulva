@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -30,6 +31,11 @@ import { Route as AdminImportRouteImport } from './routes/admin.import'
 import { Route as AdminDealsNewRouteImport } from './routes/admin.deals.new'
 import { Route as AdminDealsDealIdEditRouteImport } from './routes/admin.deals.$dealId.edit'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WatchlistRoute = WatchlistRouteImport.update({
   id: '/watchlist',
   path: '/watchlist',
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
+  '/welcome': typeof WelcomeRoute
   '/admin/import': typeof AdminImportRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
+  '/welcome': typeof WelcomeRoute
   '/admin/import': typeof AdminImportRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/trips': typeof TripsRoute
   '/watchlist': typeof WatchlistRoute
+  '/welcome': typeof WelcomeRoute
   '/admin/import': typeof AdminImportRoute
   '/deals/$dealId': typeof DealsDealIdRoute
   '/explore/$slug': typeof ExploreSlugRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/watchlist'
+    | '/welcome'
     | '/admin/import'
     | '/deals/$dealId'
     | '/explore/$slug'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/watchlist'
+    | '/welcome'
     | '/admin/import'
     | '/deals/$dealId'
     | '/explore/$slug'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/trips'
     | '/watchlist'
+    | '/welcome'
     | '/admin/import'
     | '/deals/$dealId'
     | '/explore/$slug'
@@ -283,11 +295,19 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TripsRoute: typeof TripsRoute
   WatchlistRoute: typeof WatchlistRoute
+  WelcomeRoute: typeof WelcomeRoute
   DealsDealIdRoute: typeof DealsDealIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/watchlist': {
       id: '/watchlist'
       path: '/watchlist'
@@ -472,8 +492,19 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TripsRoute: TripsRoute,
   WatchlistRoute: WatchlistRoute,
+  WelcomeRoute: WelcomeRoute,
   DealsDealIdRoute: DealsDealIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
