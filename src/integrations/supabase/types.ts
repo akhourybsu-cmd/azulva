@@ -170,6 +170,39 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_submissions: {
+        Row: {
+          created_at: string
+          email: string | null
+          feedback_type: string
+          id: string
+          message: string
+          page: string | null
+          rating: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          feedback_type?: string
+          id?: string
+          message: string
+          page?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          feedback_type?: string
+          id?: string
+          message?: string
+          page?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       import_batch_rows: {
         Row: {
           batch_id: string
@@ -671,6 +704,63 @@ export type Database = {
           data?: Json
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      waitlist_signups: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          email: string
+          group_size: number | null
+          home_airport: string | null
+          id: string
+          max_budget_per_person: number | null
+          name: string | null
+          preferred_destinations: string[] | null
+          priorities: string[] | null
+          referral_code: string | null
+          referred_by: string | null
+          source: string | null
+          status: string
+          trip_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          email: string
+          group_size?: number | null
+          home_airport?: string | null
+          id?: string
+          max_budget_per_person?: number | null
+          name?: string | null
+          preferred_destinations?: string[] | null
+          priorities?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
+          source?: string | null
+          status?: string
+          trip_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          email?: string
+          group_size?: number | null
+          home_airport?: string | null
+          id?: string
+          max_budget_per_person?: number | null
+          name?: string | null
+          preferred_destinations?: string[] | null
+          priorities?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
+          source?: string | null
+          status?: string
+          trip_type?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
