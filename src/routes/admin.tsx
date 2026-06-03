@@ -186,6 +186,12 @@ function AdminPage() {
 
           <LaunchReadinessPanel deals={deals} sources={sources} settings={settings} />
 
+          <PilotReadinessPanel deals={deals} settings={settings} />
+
+          <FirstDealPackSection deals={deals} />
+
+          <PilotQASection />
+
           <SettingsPanel settings={settings} onChanged={loadAll} />
 
           <section id="deals" className="rounded-2xl border border-border bg-card p-5">
