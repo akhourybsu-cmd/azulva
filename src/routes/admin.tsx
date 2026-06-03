@@ -40,6 +40,7 @@ import { loadRecentAudit, type AuditLogEntry } from "@/lib/admin/auditLog";
 import { tryGenerateAffiliateLink, AFFILIATE_HELPER_TEXT, describeAffiliateReadiness } from "@/lib/affiliates/AffiliateLinkService";
 import { getAffiliateProviderStatus } from "@/lib/affiliates/providerStatus.functions";
 import type { Deal } from "@/lib/types";
+import { WaitlistSection, FeedbackSection } from "@/components/admin/WaitlistSection";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Azulva Admin" }] }),
@@ -141,6 +142,8 @@ function AdminPage() {
     { label: "Outbound Clicks", to: "#clicks" },
     { label: "Affiliate Setup", to: "#affiliate" },
     { label: "Audit Log", to: "#audit" },
+    { label: "Waitlist", to: "#waitlist" },
+    { label: "Feedback", to: "#feedback" },
     { label: "Destinations", to: "#destinations" },
     { label: "Resorts", to: "#resorts" },
     { label: "API Health", to: "#health" },
@@ -342,6 +345,11 @@ function AdminPage() {
 
 
           <AuditLogSection audit={audit} />
+
+          <WaitlistSection />
+
+          <FeedbackSection />
+
 
           <section id="destinations" className="rounded-2xl border border-border bg-card p-5">
             <h2 className="font-display text-xl mb-3">Destinations</h2>
