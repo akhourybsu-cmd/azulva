@@ -30,9 +30,13 @@ import {
   markVerifiedToday,
   recalculateScore,
   duplicateDeal,
+  archiveDeal,
 } from "@/lib/admin/dealOps";
 import { getReadiness, readinessLabel, readinessColorClass } from "@/lib/dealReadiness";
 import { getAppMode, isProductionMode } from "@/lib/appMode";
+import { useAppSettings, setAppSetting, type AppSettings } from "@/lib/admin/appSettings";
+import { logAudit } from "@/lib/admin/auditLog";
+import { loadRecentAudit, type AuditLogEntry } from "@/lib/admin/auditLog";
 import type { Deal } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
@@ -48,20 +52,24 @@ function AdminPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [sources, setSources] = useState<DealSourceRow[]>([]);
   const [analytics, setAnalytics] = useState<Awaited<ReturnType<typeof loadClickAnalytics>> | null>(null);
+  const [audit, setAudit] = useState<AuditLogEntry[]>([]);
+  const settings = useAppSettings();
   const fetchRecent = useServerFn(getApiHealthRecent);
   const fetchIntel = useServerFn(getDestinationIntelligence);
 
   async function loadAll() {
-    const [providerHealth, recentRes, src, an] = await Promise.all([
+    const [providerHealth, recentRes, src, an, log] = await Promise.all([
       Promise.all(allProviders.map((p) => p.health())),
       fetchRecent(),
       loadDealSources(),
       loadClickAnalytics(),
+      loadRecentAudit(50),
     ]);
     setHealth(providerHealth);
     setRecent(recentRes.entries);
     setSources(src);
     setAnalytics(an);
+    setAudit(log);
   }
 
   useEffect(() => { loadAll(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
@@ -111,10 +119,13 @@ function AdminPage() {
 
   const adminLinks = [
     { label: "Dashboard", to: "#dash" },
+    { label: "Launch Readiness", to: "#launch" },
+    { label: "Settings", to: "#settings" },
     { label: "Deals", to: "#deals" },
     { label: "Deal Quality", to: "#quality" },
     { label: "Deal Sources", to: "#sources" },
     { label: "Outbound Clicks", to: "#clicks" },
+    { label: "Audit Log", to: "#audit" },
     { label: "Destinations", to: "#destinations" },
     { label: "Resorts", to: "#resorts" },
     { label: "API Health", to: "#health" },
@@ -150,6 +161,10 @@ function AdminPage() {
               <Stat label="Quality issues" v={quality.missingAffiliate.length + quality.missingSource.length + quality.unclearAi.length + quality.notPublishReady.length} />
             </div>
           </section>
+
+          <LaunchReadinessPanel deals={deals} sources={sources} settings={settings} />
+
+          <SettingsPanel settings={settings} onChanged={loadAll} />
 
           <section id="deals" className="rounded-2xl border border-border bg-card p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -205,19 +220,19 @@ function AdminPage() {
           <section id="quality" className="rounded-2xl border border-border bg-card p-5">
             <h2 className="font-display text-xl mb-3">Deal Quality Queue</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              <QualityList title="Missing affiliate URL" deals={quality.missingAffiliate} />
-              <QualityList title="Missing source URL" deals={quality.missingSource} />
-              <QualityList title="Missing source ID" deals={quality.missingSourceId} />
-              <QualityList title="Missing destination" deals={quality.missingDestination} />
-              <QualityList title="Missing resort name" deals={quality.missingResort} />
-              <QualityList title="Missing price/currency" deals={quality.missingPrice} />
-              <QualityList title="All-inclusive unclear" deals={quality.unclearAi} />
-              <QualityList title="Stale / aging (>3 days)" deals={quality.stale} />
-              <QualityList title="Expiring soon" deals={quality.expiringSoon} />
-              <QualityList title="Expired but still active" deals={quality.expiredButActive} />
-              <QualityList title="Active but not publish-ready" deals={quality.notPublishReady} />
-              <QualityList title="Sample / mock deals" deals={quality.sampleDeals} />
-              {prodMode && <QualityList title="Sample deals visible in production" deals={quality.sampleInProd} />}
+              <QualityList title="Missing affiliate URL" deals={quality.missingAffiliate} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing source URL" deals={quality.missingSource} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing source ID" deals={quality.missingSourceId} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing destination" deals={quality.missingDestination} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing resort name" deals={quality.missingResort} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing price/currency" deals={quality.missingPrice} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="All-inclusive unclear" deals={quality.unclearAi} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Stale / aging (>3 days)" deals={quality.stale} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Expiring soon" deals={quality.expiringSoon} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Expired but still active" deals={quality.expiredButActive} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active but not publish-ready" deals={quality.notPublishReady} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Sample / mock deals" deals={quality.sampleDeals} customIds={s.customDeals.map((d) => d.id)} />
+              {prodMode && <QualityList title="Sample deals visible in production" deals={quality.sampleInProd} customIds={s.customDeals.map((d) => d.id)} />}
             </div>
           </section>
 
@@ -317,7 +332,8 @@ function Stat({ label, v }: { label: string; v: number }) {
   );
 }
 
-function QualityList({ title, deals }: { title: string; deals: Deal[] }) {
+function QualityList({ title, deals, customIds }: { title: string; deals: Deal[]; customIds?: string[] }) {
+  const customSet = new Set(customIds ?? []);
   return (
     <div className="rounded-xl border border-border p-3">
       <div className="flex items-center justify-between">
@@ -325,11 +341,14 @@ function QualityList({ title, deals }: { title: string; deals: Deal[] }) {
         <span className="rounded-full bg-muted px-2 py-0.5 text-[10px]">{deals.length}</span>
       </div>
       {deals.length === 0 ? <p className="mt-2 text-xs text-muted-foreground">All clear.</p> : (
-        <ul className="mt-2 max-h-40 space-y-1 overflow-auto text-xs">
+        <ul className="mt-2 max-h-56 space-y-1 overflow-auto text-xs">
           {deals.slice(0, 10).map((d) => (
-            <li key={d.id} className="flex items-center justify-between">
-              <Link to="/deals/$dealId" params={{ dealId: d.id }} className="truncate hover:underline">{d.title}</Link>
-              <span className="text-muted-foreground">${d.pricePerPerson}</span>
+            <li key={d.id} className="space-y-1 border-b border-border/40 pb-1 last:border-0">
+              <div className="flex items-center justify-between gap-2">
+                <Link to="/deals/$dealId" params={{ dealId: d.id }} className="truncate hover:underline">{d.title}</Link>
+                <span className="text-muted-foreground">${d.pricePerPerson}</span>
+              </div>
+              {customSet.has(d.id) && <DealOpsMenu deal={d} compact />}
             </li>
           ))}
         </ul>
@@ -491,24 +510,135 @@ function SourceForm({ onSaved }: { onSaved: () => void }) {
   );
 }
 
-function DealOpsMenu({ deal }: { deal: Deal }) {
+function DealOpsMenu({ deal, compact }: { deal: Deal; compact?: boolean }) {
   function ask(label: string): string | null { const v = prompt(label); return v; }
+  const btn = `rounded bg-muted px-1.5 py-0.5 hover:bg-muted/70 ${compact ? "text-[10px]" : "text-[10px]"}`;
+  function mutate(action: string, fn: (d: Deal) => Deal) {
+    storeActions.updateCustomDeal(deal.id, (d) => {
+      const next = fn(d);
+      logAudit({ action: action as never, entityType: "deal", entityId: d.id, before: d, after: next });
+      return next;
+    });
+  }
   return (
-    <span className="inline-flex flex-wrap gap-1 text-[10px]">
+    <span className="inline-flex flex-wrap gap-1">
+      <Link to="/admin/deals/$dealId/edit" params={{ dealId: deal.id }} className={btn}>Edit</Link>
+      <button onClick={() => mutate("mark_verified", markVerifiedToday)} className={btn}>Verify</button>
+      <button onClick={() => mutate("recalculate_score", recalculateScore)} className={btn}>Recalc</button>
       {deal.status !== "flagged" ? (
-        <button onClick={() => { const r = ask("Flag reason?"); if (r !== null) storeActions.updateCustomDeal(deal.id, (d) => flagDeal(d, r)); }} className="rounded bg-muted px-1.5 py-0.5 hover:bg-[var(--warning)]/20">Flag</button>
+        <button onClick={() => { const r = ask("Flag reason?"); if (r !== null) mutate("flag_deal", (d) => flagDeal(d, r)); }} className={btn}>Flag</button>
       ) : (
-        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => unflagDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Unflag</button>
+        <button onClick={() => mutate("unflag_deal", unflagDeal)} className={btn}>Unflag</button>
       )}
-      {deal.status !== "expired" ? (
-        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => expireDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Expire</button>
+      {deal.status !== "expired" && deal.status !== "archived" && (
+        <button onClick={() => mutate("expire_deal", expireDeal)} className={btn}>Expire</button>
+      )}
+      {deal.status !== "archived" ? (
+        <button onClick={() => mutate("archive_deal", archiveDeal)} className={btn}>Archive</button>
       ) : (
-        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => restoreDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Restore</button>
+        <button onClick={() => mutate("restore_deal", restoreDeal)} className={btn}>Restore</button>
       )}
-      <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => markVerifiedToday(d))} className="rounded bg-muted px-1.5 py-0.5">Verify</button>
-      <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => recalculateScore(d))} className="rounded bg-muted px-1.5 py-0.5">Recalc</button>
-      <button onClick={() => storeActions.duplicateCustomDeal(deal.id, duplicateDeal)} className="rounded bg-muted px-1.5 py-0.5">Duplicate</button>
-      <button onClick={() => { if (confirm("Delete deal?")) storeActions.deleteCustomDeal(deal.id); }} className="rounded bg-destructive/15 px-1.5 py-0.5 text-destructive">Delete</button>
+      <button onClick={() => { storeActions.duplicateCustomDeal(deal.id, duplicateDeal); logAudit({ action: "duplicate_deal", entityType: "deal", entityId: deal.id }); }} className={btn}>Dup</button>
+      <button onClick={() => { if (confirm("Delete deal?")) { logAudit({ action: "delete_deal", entityType: "deal", entityId: deal.id, before: deal }); storeActions.deleteCustomDeal(deal.id); } }} className="rounded bg-destructive/15 px-1.5 py-0.5 text-[10px] text-destructive">Del</button>
     </span>
+  );
+}
+
+function LaunchReadinessPanel({ deals, sources, settings }: { deals: Deal[]; sources: DealSourceRow[]; settings: AppSettings }) {
+  const active = deals.filter((d) => d.status === "active");
+  type Check = { label: string; state: "ready" | "needs_review" | "blocking"; detail?: string };
+  const checks: Check[] = [
+    { label: `App mode: ${settings.app_mode}`, state: "ready" },
+    { label: `Sample deals visible to users: ${settings.show_sample_deals ? "yes" : "no"}`, state: settings.app_mode === "production" && settings.show_sample_deals ? "needs_review" : "ready" },
+    { label: "Active deals missing source URL", state: active.filter((d) => !d.sourceUrl).length === 0 ? "ready" : "blocking", detail: `${active.filter((d) => !d.sourceUrl).length}` },
+    { label: "Active deals missing outbound (affiliate or source URL)", state: active.filter((d) => !d.affiliateUrl && !d.generatedAffiliateUrl && !d.sourceUrl).length === 0 ? "ready" : "blocking", detail: `${active.filter((d) => !d.affiliateUrl && !d.generatedAffiliateUrl && !d.sourceUrl).length}` },
+    { label: "Active deals not verified recently", state: active.filter((d) => { const f = freshnessOf(d); return f === "stale" || f === "aging"; }).length === 0 ? "ready" : "needs_review", detail: `${active.filter((d) => { const f = freshnessOf(d); return f === "stale" || f === "aging"; }).length}` },
+    { label: "Active deals with unclear all-inclusive status", state: active.filter((d) => d.allInclusiveConfidence === "Unclear" || d.allInclusiveConfidence === "Unknown").length === 0 ? "ready" : "needs_review", detail: `${active.filter((d) => d.allInclusiveConfidence === "Unclear" || d.allInclusiveConfidence === "Unknown").length}` },
+    { label: "Active deals missing destination/resort/price", state: active.filter((d) => !d.destinationId || !d.resortId || !d.pricePerPerson).length === 0 ? "ready" : "blocking", detail: `${active.filter((d) => !d.destinationId || !d.resortId || !d.pricePerPerson).length}` },
+    { label: "Affiliate disclosure enabled", state: settings.affiliate_disclosure_enabled ? "ready" : "blocking" },
+    { label: "Verification notice enabled", state: settings.verification_notice_enabled ? "ready" : "needs_review" },
+    { label: "Deal sources configured", state: sources.length > 0 ? "ready" : "blocking", detail: `${sources.length}` },
+  ];
+  const color = (s: Check["state"]) =>
+    s === "ready" ? "bg-[var(--success)]/15 text-[var(--success)]"
+    : s === "needs_review" ? "bg-[var(--warning)]/15 text-[var(--warning)]"
+    : "bg-destructive/15 text-destructive";
+  return (
+    <section id="launch" className="rounded-2xl border border-border bg-card p-5">
+      <h2 className="font-display text-xl mb-3">Launch Readiness</h2>
+      <p className="mb-3 text-xs text-muted-foreground">Guidance only — does not block deployment.</p>
+      <ul className="space-y-1.5 text-sm">
+        {checks.map((c, i) => (
+          <li key={i} className="flex items-center justify-between gap-3 rounded-lg border border-border p-2">
+            <span>{c.label}{c.detail ? <span className="ml-2 text-xs text-muted-foreground">({c.detail})</span> : null}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${color(c.state)}`}>{c.state.replace("_", " ")}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function SettingsPanel({ settings, onChanged }: { settings: AppSettings; onChanged: () => void }) {
+  const [saving, setSaving] = useState<string | null>(null);
+  async function update<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
+    setSaving(key);
+    const before = settings[key];
+    const res = await setAppSetting(key, value);
+    setSaving(null);
+    if (!res.ok) { alert(res.error); return; }
+    logAudit({ action: "update_app_setting", entityType: "app_setting", entityId: key, before: { [key]: before }, after: { [key]: value } });
+    onChanged();
+  }
+  return (
+    <section id="settings" className="rounded-2xl border border-border bg-card p-5">
+      <h2 className="font-display text-xl mb-3">App Settings</h2>
+      <div className="grid gap-3 sm:grid-cols-2 text-sm">
+        <label className="flex items-center justify-between rounded-lg border border-border p-2">
+          <span>App mode</span>
+          <select
+            disabled={saving === "app_mode"}
+            value={settings.app_mode}
+            onChange={(e) => update("app_mode", e.target.value as AppSettings["app_mode"])}
+            className="rounded border border-border bg-background px-2 py-1 text-xs"
+          >
+            <option value="demo">demo</option>
+            <option value="production">production</option>
+          </select>
+        </label>
+        {(["show_sample_deals", "allow_public_custom_deals", "affiliate_disclosure_enabled", "verification_notice_enabled"] as const).map((k) => (
+          <label key={k} className="flex items-center justify-between rounded-lg border border-border p-2">
+            <span>{k.replace(/_/g, " ")}</span>
+            <input
+              type="checkbox"
+              disabled={saving === k}
+              checked={settings[k]}
+              onChange={(e) => update(k, e.target.checked)}
+            />
+          </label>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function AuditLogSection({ audit }: { audit: AuditLogEntry[] }) {
+  return (
+    <section id="audit" className="rounded-2xl border border-border bg-card p-5">
+      <h2 className="font-display text-xl mb-3">Admin Audit Log</h2>
+      {audit.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No actions logged yet.</p>
+      ) : (
+        <ul className="max-h-80 space-y-1 overflow-auto text-xs">
+          {audit.map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 py-1">
+              <span className="font-medium">{a.action}</span>
+              <span className="text-muted-foreground">{a.entity_type ?? "—"} {a.entity_id ? `· ${a.entity_id.slice(0, 8)}` : ""}</span>
+              <span className="text-muted-foreground" suppressHydrationWarning>{new Date(a.created_at).toLocaleString()}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

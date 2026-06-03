@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           created_at: string
@@ -35,6 +68,27 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["admin_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
         }
         Relationships: []
       }
@@ -104,6 +158,92 @@ export type Database = {
           source_type?: string
           trust_level?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      import_batch_rows: {
+        Row: {
+          batch_id: string
+          created_at: string
+          created_deal_id: string | null
+          id: string
+          message: string | null
+          raw_data: Json | null
+          row_number: number
+          status: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          created_deal_id?: string | null
+          id?: string
+          message?: string | null
+          raw_data?: Json | null
+          row_number: number
+          status: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          created_deal_id?: string | null
+          id?: string
+          message?: string | null
+          raw_data?: Json | null
+          row_number?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batch_rows_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_batches: {
+        Row: {
+          created_at: string
+          duplicate_count: number
+          error_count: number
+          filename: string | null
+          id: string
+          imported_count: number
+          mode: string
+          status: string
+          summary: Json
+          total_rows: number
+          uploaded_by: string | null
+          warning_count: number
+        }
+        Insert: {
+          created_at?: string
+          duplicate_count?: number
+          error_count?: number
+          filename?: string | null
+          id?: string
+          imported_count?: number
+          mode?: string
+          status?: string
+          summary?: Json
+          total_rows?: number
+          uploaded_by?: string | null
+          warning_count?: number
+        }
+        Update: {
+          created_at?: string
+          duplicate_count?: number
+          error_count?: number
+          filename?: string | null
+          id?: string
+          imported_count?: number
+          mode?: string
+          status?: string
+          summary?: Json
+          total_rows?: number
+          uploaded_by?: string | null
+          warning_count?: number
         }
         Relationships: []
       }

@@ -135,6 +135,8 @@ function AuthListener() {
   const router = useRouter();
   const queryClient = useQueryClient();
   useEffect(() => {
+    // Hydrate DB-backed app settings (app_mode, sample-deal visibility, etc.)
+    import("@/lib/admin/appSettings").then((m) => m.loadAppSettings().catch(() => {}));
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       queryClient.invalidateQueries();
       router.invalidate();
