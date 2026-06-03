@@ -433,6 +433,29 @@ function QualityList({ title, deals, customIds }: { title: string; deals: Deal[]
   );
 }
 
+function BookingIntentLegend() {
+  const rows: { label: string; intent: string }[] = [
+    { label: "trip_room", intent: "high group intent" },
+    { label: "watchlist", intent: "high personal intent" },
+    { label: "deal_detail", intent: "high research intent" },
+    { label: "deal_card", intent: "broad discovery intent" },
+    { label: "destination_page", intent: "destination-driven intent" },
+    { label: "escape_board", intent: "saved / shortlist intent" },
+    { label: "admin_preview", intent: "internal verification" },
+    { label: "other", intent: "unattributed / unknown" },
+  ];
+  return (
+    <div className="mt-4 rounded-xl border border-dashed border-border p-3 text-[11px]">
+      <div className="mb-1.5 text-sm font-semibold">Booking-intent legend</div>
+      <ul className="grid gap-0.5 sm:grid-cols-2">
+        {rows.map((r) => (
+          <li key={r.label} className="flex justify-between gap-2"><span className="font-mono">{r.label}</span><span className="text-muted-foreground">{r.intent}</span></li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function ClickBreakdown({ title, rows }: { title: string; rows: { label: string; count: number }[] }) {
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
