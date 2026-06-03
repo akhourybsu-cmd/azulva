@@ -98,6 +98,10 @@ function AdminPage() {
 
   // Quality queue calculations
   const prodMode = isProductionMode();
+  const refOnlySourceIds = new Set(sources.filter((s) => s.approved_linking_method === "reference_only").map((s) => s.id));
+  const manualVerifySourceIds = new Set(sources.filter((s) => s.requires_manual_verification).map((s) => s.id));
+  const expectsAffiliateSourceIds = new Set(sources.filter((s) => s.affiliate_supported || s.approved_linking_method === "generated_affiliate_url" || s.approved_linking_method === "manual_affiliate_url").map((s) => s.id));
+  const STALE_VERIFY_MS = 7 * 24 * 60 * 60 * 1000;
   const quality = {
     missingAffiliate: deals.filter((d) => d.status !== "expired" && !d.affiliateUrl && !d.generatedAffiliateUrl),
     missingSource: deals.filter((d) => d.status !== "expired" && !d.sourceUrl),
@@ -115,6 +119,14 @@ function AdminPage() {
       return d.status === "active" && (r.state === "missing_critical" || r.state === "needs_review");
     }),
     sampleInProd: prodMode ? deals.filter((d) => d.sourceLabel === "Sample Deal") : [],
+    activeRefOnly: deals.filter((d) => d.status === "active" && d.sourceId && refOnlySourceIds.has(d.sourceId)),
+    activeNeedsManualVerify: deals.filter((d) => {
+      if (d.status !== "active" || !d.sourceId || !manualVerifySourceIds.has(d.sourceId)) return false;
+      const last = d.lastCheckedAt ? new Date(d.lastCheckedAt).getTime() : 0;
+      return !last || Date.now() - last > STALE_VERIFY_MS;
+    }),
+    activeNoOutbound: deals.filter((d) => d.status === "active" && !d.sourceUrl && !d.affiliateUrl && !d.generatedAffiliateUrl),
+    activeAffiliateExpectedButDirect: deals.filter((d) => d.status === "active" && d.sourceUrl && !d.affiliateUrl && !d.generatedAffiliateUrl && d.sourceId && expectsAffiliateSourceIds.has(d.sourceId)),
   };
 
   const sourceLookup = new Map(sources.map((x) => [x.id, x] as const));
@@ -236,6 +248,10 @@ function AdminPage() {
               <QualityList title="Active but not publish-ready" deals={quality.notPublishReady} customIds={s.customDeals.map((d) => d.id)} />
               <QualityList title="Sample / mock deals" deals={quality.sampleDeals} customIds={s.customDeals.map((d) => d.id)} />
               {prodMode && <QualityList title="Sample deals visible in production" deals={quality.sampleInProd} customIds={s.customDeals.map((d) => d.id)} />}
+              <QualityList title="Active · reference-only source" deals={quality.activeRefOnly} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active · needs manual verification (>7d)" deals={quality.activeNeedsManualVerify} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active · no outbound URL" deals={quality.activeNoOutbound} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active · source URL only, affiliate expected" deals={quality.activeAffiliateExpectedButDirect} customIds={s.customDeals.map((d) => d.id)} />
             </div>
           </section>
 
