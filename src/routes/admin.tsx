@@ -37,6 +37,8 @@ import { getAppMode, isProductionMode } from "@/lib/appMode";
 import { useAppSettings, setAppSetting, type AppSettings } from "@/lib/admin/appSettings";
 import { logAudit } from "@/lib/admin/auditLog";
 import { loadRecentAudit, type AuditLogEntry } from "@/lib/admin/auditLog";
+import { tryGenerateAffiliateLink, AFFILIATE_HELPER_TEXT, describeAffiliateReadiness } from "@/lib/affiliates/AffiliateLinkService";
+import { getAffiliateProviderStatus } from "@/lib/affiliates/providerStatus.functions";
 import type { Deal } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
