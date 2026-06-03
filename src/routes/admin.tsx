@@ -87,16 +87,24 @@ function AdminPage() {
   }
 
   // Quality queue calculations
+  const prodMode = isProductionMode();
   const quality = {
     missingAffiliate: deals.filter((d) => d.status !== "expired" && !d.affiliateUrl && !d.generatedAffiliateUrl),
     missingSource: deals.filter((d) => d.status !== "expired" && !d.sourceUrl),
     unclearAi: deals.filter((d) => d.allInclusiveConfidence === "Unclear" || d.allInclusiveConfidence === "Unknown"),
-    stale: deals.filter((d) => {
-      const f = freshnessOf(d);
-      return f === "stale" || f === "aging";
-    }),
+    stale: deals.filter((d) => { const f = freshnessOf(d); return f === "stale" || f === "aging"; }),
     expiringSoon: deals.filter((d) => expiringSoon(d)),
     sampleDeals: deals.filter((d) => d.sourceLabel === "Sample Deal"),
+    missingSourceId: deals.filter((d) => d.sourceLabel !== "Sample Deal" && !d.sourceId),
+    missingDestination: deals.filter((d) => !d.destinationId),
+    missingResort: deals.filter((d) => !d.resortId),
+    missingPrice: deals.filter((d) => !d.pricePerPerson || !d.currencyCode),
+    expiredButActive: deals.filter((d) => d.status === "active" && d.expiresAt && new Date(d.expiresAt) < new Date()),
+    notPublishReady: deals.filter((d) => {
+      const r = getReadiness(d);
+      return d.status === "active" && (r.state === "missing_critical" || r.state === "needs_review");
+    }),
+    sampleInProd: prodMode ? deals.filter((d) => d.sourceLabel === "Sample Deal") : [],
   };
 
   const sourceLookup = new Map(sources.map((x) => [x.id, x] as const));
