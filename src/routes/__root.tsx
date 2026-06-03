@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster as SonnerToaster } from "sonner";
+import appIcon from "@/assets/azulva-app-icon.png.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -80,17 +81,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Azulva — Find the all-inclusive trip everyone actually agrees on" },
-      { name: "description", content: "Track resort deals, compare trip options, vote with friends, and know when a beach escape is actually worth booking." },
+      { name: "description", content: "Find, watch, compare, and choose better all-inclusive trips with friends." },
+      { name: "application-name", content: "Azulva" },
+      { name: "apple-mobile-web-app-title", content: "Azulva" },
+      { name: "theme-color", content: "#1266E6" },
       { property: "og:title", content: "Azulva" },
-      { property: "og:description", content: "Find the all-inclusive trip everyone actually agrees on." },
+      { property: "og:description", content: "Find, watch, compare, and choose better all-inclusive trips with friends." },
+      { property: "og:site_name", content: "Azulva" },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: appIcon.url },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: appIcon.url },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: appIcon.url },
+      { rel: "apple-touch-icon", href: appIcon.url },
     ],
   }),
   shellComponent: RootShell,
