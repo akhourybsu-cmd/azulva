@@ -224,6 +224,19 @@ function TripRoomCard({ room, allDeals }: { room: TripRoom; allDeals: ReturnType
                     <FitBadge fit={fit} />
                   </div>
                   {fit.conflicts.length > 0 && <ConflictRow conflicts={fit.conflicts} />}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <Link to="/deals/$dealId" params={{ dealId: d.id }} className="rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] hover:bg-muted">
+                      View Details
+                    </Link>
+                    <ViewDealButton
+                      deal={d}
+                      clickedFrom="trip_room"
+                      tripRoomId={room.id}
+                      className="inline-flex items-center gap-1 rounded-lg bg-foreground px-2.5 py-1 text-[11px] font-semibold text-background"
+                    >
+                      Check Availability <ExternalLink className="h-3 w-3" />
+                    </ViewDealButton>
+                  </div>
                   <div className="mt-2 flex flex-wrap gap-1">
                     {VOTE_OPTIONS.map((vo) => {
                       const count = dealVotes.filter((v) => v.voteType === vo.type).length;
