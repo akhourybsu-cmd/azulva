@@ -357,6 +357,12 @@ export async function cloudRecordOutboundClick(c: OutboundClick, userId: string 
     destination_id: c.destinationId ?? null,
     departure_airport: c.departureAirport ?? null,
     referrer: c.referrer ?? null,
+    clicked_from: c.clickedFrom ?? null,
+    trip_room_id: c.tripRoomId ?? null,
+    watchlist_id: c.watchlistId ?? null,
+    generated_affiliate_used: c.generatedAffiliateUsed ?? false,
+    manual_affiliate_used: c.manualAffiliateUsed ?? false,
+    direct_source_used: c.directSourceUsed ?? false,
   });
 }
 
