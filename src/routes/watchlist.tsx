@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Bell, Heart, Plus, Trash2, Bookmark } from "lucide-react";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { useAuth } from "@/hooks/use-auth";
-import { loadProfileAndPrefs, DEFAULT_PREFERENCES, type CloudPreferences, type CloudProfile } from "@/lib/cloudSync";
+import { loadProfileAndPrefs } from "@/lib/cloudSync";
 
 export const Route = createFileRoute("/watchlist")({
   head: () => ({ meta: [{ title: "Deal Watches — Azulva" }] }),
