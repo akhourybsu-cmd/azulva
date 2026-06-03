@@ -38,29 +38,168 @@ export type Database = {
         }
         Relationships: []
       }
+      deal_sources: {
+        Row: {
+          affiliate_supported: boolean
+          api_supported: boolean
+          base_url: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          name: string
+          notes: string | null
+          slug: string
+          source_type: string
+          trust_level: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_supported?: boolean
+          api_supported?: boolean
+          base_url?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          notes?: string | null
+          slug: string
+          source_type: string
+          trust_level?: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_supported?: boolean
+          api_supported?: boolean
+          base_url?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          notes?: string | null
+          slug?: string
+          source_type?: string
+          trust_level?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       outbound_clicks: {
         Row: {
+          affiliate_url: string | null
           created_at: string
           deal_id: string
+          departure_airport: string | null
+          destination_id: string | null
           id: string
+          outbound_url: string | null
+          referrer: string | null
           source: string | null
+          source_id: string | null
           user_id: string | null
         }
         Insert: {
+          affiliate_url?: string | null
           created_at?: string
           deal_id: string
+          departure_airport?: string | null
+          destination_id?: string | null
           id?: string
+          outbound_url?: string | null
+          referrer?: string | null
           source?: string | null
+          source_id?: string | null
           user_id?: string | null
         }
         Update: {
+          affiliate_url?: string | null
           created_at?: string
           deal_id?: string
+          departure_airport?: string | null
+          destination_id?: string | null
           id?: string
+          outbound_url?: string | null
+          referrer?: string | null
           source?: string | null
+          source_id?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "outbound_clicks_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "deal_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_snapshots: {
+        Row: {
+          captured_at: string
+          captured_by: string
+          captured_by_user: string | null
+          currency: string
+          deal_id: string
+          departure_airport: string | null
+          destination_slug: string | null
+          end_date: string | null
+          flight_included: boolean | null
+          id: string
+          nights: number | null
+          notes: string | null
+          price_per_person: number
+          resort_name: string | null
+          source_id: string | null
+          source_url: string | null
+          start_date: string | null
+        }
+        Insert: {
+          captured_at?: string
+          captured_by?: string
+          captured_by_user?: string | null
+          currency?: string
+          deal_id: string
+          departure_airport?: string | null
+          destination_slug?: string | null
+          end_date?: string | null
+          flight_included?: boolean | null
+          id?: string
+          nights?: number | null
+          notes?: string | null
+          price_per_person: number
+          resort_name?: string | null
+          source_id?: string | null
+          source_url?: string | null
+          start_date?: string | null
+        }
+        Update: {
+          captured_at?: string
+          captured_by?: string
+          captured_by_user?: string | null
+          currency?: string
+          deal_id?: string
+          departure_airport?: string | null
+          destination_slug?: string | null
+          end_date?: string | null
+          flight_included?: boolean | null
+          id?: string
+          nights?: number | null
+          notes?: string | null
+          price_per_person?: number
+          resort_name?: string | null
+          source_id?: string | null
+          source_url?: string | null
+          start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_snapshots_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "deal_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

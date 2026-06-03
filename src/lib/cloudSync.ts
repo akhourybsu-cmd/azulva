@@ -348,9 +348,18 @@ export async function cloudRecordVote(v: DealVote) {
 
 export async function cloudRecordOutboundClick(c: OutboundClick, userId: string | null) {
   await supabase.from("outbound_clicks").insert({
-    deal_id: c.dealId, user_id: userId, source: c.outboundUrl,
+    deal_id: c.dealId,
+    user_id: userId,
+    source: c.outboundUrl,
+    outbound_url: c.outboundUrl,
+    affiliate_url: c.affiliateUrl ?? null,
+    source_id: c.sourceId ?? null,
+    destination_id: c.destinationId ?? null,
+    departure_airport: c.departureAirport ?? null,
+    referrer: c.referrer ?? null,
   });
 }
+
 
 export async function cloudAddCustomDeal(userId: string, d: Deal) {
   await supabase.from("custom_deals").upsert(

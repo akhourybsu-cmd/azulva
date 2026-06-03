@@ -76,8 +76,10 @@ export interface Deal {
   resortId: string;
   destinationId: string;
   sourceLabel: SourceLabel;
+  sourceId?: string | null; // FK -> deal_sources.id
   sourceUrl: string;
   affiliateUrl?: string;
+  generatedAffiliateUrl?: string;
   departureAirport: string;
   arrivalAirport: string;
   startDate: string; // ISO
@@ -108,11 +110,15 @@ export interface Deal {
   flexibilityScore: number;
   urgencyScore: number;
   allInclusiveConfidence: AllInclusiveConfidence;
-  status: "active" | "expiring" | "expired";
+  status: "active" | "expiring" | "expired" | "draft" | "flagged";
+  flaggedReason?: string;
+  adminNotes?: string;
+  sourceConfidence?: "high" | "medium" | "low" | "unknown";
   lastCheckedAt: string;
   expiresAt?: string;
   aiSummary?: string;
 }
+
 
 export interface PriceSnapshot {
   id: string;
@@ -216,6 +222,25 @@ export interface OutboundClick {
   id: string;
   dealId: string;
   outboundUrl: string;
+  affiliateUrl?: string | null;
+  sourceId?: string | null;
+  destinationId?: string | null;
+  departureAirport?: string | null;
+  referrer?: string | null;
   clickedAt: string;
 }
+
+export interface DealSource {
+  id: string;
+  name: string;
+  slug: string;
+  sourceType: "manual" | "affiliate" | "api" | "partner" | "mock";
+  baseUrl?: string | null;
+  affiliateSupported: boolean;
+  apiSupported: boolean;
+  enabled: boolean;
+  trustLevel: "high" | "medium" | "low" | "unknown";
+  notes?: string | null;
+}
+
 
