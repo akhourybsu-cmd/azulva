@@ -6,6 +6,7 @@ import { mockDestinations } from "@/lib/data/mockDestinations";
 import { Bookmark, Heart, Plane, Bell, ScanSearch, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CompareDestinationsDialog, useCompareSet } from "@/components/CompareDestinations";
+import { SuggestToTripRoomButton } from "@/components/SuggestToTripRoom";
 
 export const Route = createFileRoute("/escape-board")({
   head: () => ({
