@@ -54,7 +54,7 @@ function EditDealPage() {
     if (!form?.sourceUrl) return;
     const res = await tryGenerateAffiliateLink(form.sourceUrl);
     if (res.affiliateUrl) patch("generatedAffiliateUrl", res.affiliateUrl);
-    else alert(res.reason === "no_token"
+    else alert(res.reason === "not_configured"
       ? "No TRAVELPAYOUTS_TOKEN configured. Add an affiliate URL manually."
       : "Could not generate affiliate URL.");
   }
