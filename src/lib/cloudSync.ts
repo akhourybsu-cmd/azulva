@@ -149,7 +149,7 @@ export async function migrateLocalToCloud(
       .from("watchlists").select("*", { count: "exact", head: true }).eq("user_id", userId);
     if ((wlCount ?? 0) === 0 && local.watchlists.length > 0) {
       await supabase.from("watchlists").insert(
-        local.watchlists.map((w) => ({ user_id: userId, data: w })),
+        local.watchlists.map((w) => ({ user_id: userId, data: w as unknown as Record<string, unknown> })),
       );
     }
 
