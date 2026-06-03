@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { DealCard } from "@/components/DealCard";
 import { useAllDeals, useStore, storeActions } from "@/lib/store";
-import { useState } from "react";
-import { Bell, Heart, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, Heart, Plus, Trash2, Bookmark } from "lucide-react";
 import { mockDestinations } from "@/lib/data/mockDestinations";
+import { useAuth } from "@/hooks/use-auth";
+import { loadProfileAndPrefs, DEFAULT_PREFERENCES, type CloudPreferences, type CloudProfile } from "@/lib/cloudSync";
 
 export const Route = createFileRoute("/watchlist")({
   head: () => ({ meta: [{ title: "Deal Watches — Azulva" }] }),
@@ -16,6 +18,18 @@ function WatchlistPage() {
   const deals = useAllDeals();
   const saved = deals.filter((d) => s.savedDealIds.includes(d.id));
   const [showNew, setShowNew] = useState(false);
+  const [prefillDest, setPrefillDest] = useState<string | null>(null);
+
+  // Read ?destination=ID and auto-open the new-watch form.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const d = sp.get("destination");
+    if (d) {
+      setPrefillDest(d);
+      setShowNew(true);
+    }
+  }, []);
 
   return (
     <AppShell>
