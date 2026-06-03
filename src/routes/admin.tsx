@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { AdminGuard } from "@/components/AdminGuard";
-import { useStore, useAllDeals, storeActions, getCurrentUserId } from "@/lib/store";
+import { useStore, useAllDealsAdmin, storeActions, getCurrentUserId } from "@/lib/store";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { allProviders } from "@/lib/api/providers";
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/admin")({
 
 function AdminPage() {
   const s = useStore();
-  const deals = useAllDeals();
+  const deals = useAllDealsAdmin();
   const [health, setHealth] = useState<ProviderHealth[]>([]);
   const [recent, setRecent] = useState<ProviderHealth[]>([]);
   const [refreshing, setRefreshing] = useState(false);
