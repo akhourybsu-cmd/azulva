@@ -162,6 +162,10 @@ function AdminPage() {
             </div>
           </section>
 
+          <LaunchReadinessPanel deals={deals} sources={sources} settings={settings} />
+
+          <SettingsPanel settings={settings} onChanged={loadAll} />
+
           <section id="deals" className="rounded-2xl border border-border bg-card p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <h2 className="font-display text-xl">Deals</h2>
@@ -216,19 +220,19 @@ function AdminPage() {
           <section id="quality" className="rounded-2xl border border-border bg-card p-5">
             <h2 className="font-display text-xl mb-3">Deal Quality Queue</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              <QualityList title="Missing affiliate URL" deals={quality.missingAffiliate} />
-              <QualityList title="Missing source URL" deals={quality.missingSource} />
-              <QualityList title="Missing source ID" deals={quality.missingSourceId} />
-              <QualityList title="Missing destination" deals={quality.missingDestination} />
-              <QualityList title="Missing resort name" deals={quality.missingResort} />
-              <QualityList title="Missing price/currency" deals={quality.missingPrice} />
-              <QualityList title="All-inclusive unclear" deals={quality.unclearAi} />
-              <QualityList title="Stale / aging (>3 days)" deals={quality.stale} />
-              <QualityList title="Expiring soon" deals={quality.expiringSoon} />
-              <QualityList title="Expired but still active" deals={quality.expiredButActive} />
-              <QualityList title="Active but not publish-ready" deals={quality.notPublishReady} />
-              <QualityList title="Sample / mock deals" deals={quality.sampleDeals} />
-              {prodMode && <QualityList title="Sample deals visible in production" deals={quality.sampleInProd} />}
+              <QualityList title="Missing affiliate URL" deals={quality.missingAffiliate} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing source URL" deals={quality.missingSource} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing source ID" deals={quality.missingSourceId} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing destination" deals={quality.missingDestination} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing resort name" deals={quality.missingResort} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Missing price/currency" deals={quality.missingPrice} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="All-inclusive unclear" deals={quality.unclearAi} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Stale / aging (>3 days)" deals={quality.stale} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Expiring soon" deals={quality.expiringSoon} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Expired but still active" deals={quality.expiredButActive} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Active but not publish-ready" deals={quality.notPublishReady} customIds={s.customDeals.map((d) => d.id)} />
+              <QualityList title="Sample / mock deals" deals={quality.sampleDeals} customIds={s.customDeals.map((d) => d.id)} />
+              {prodMode && <QualityList title="Sample deals visible in production" deals={quality.sampleInProd} customIds={s.customDeals.map((d) => d.id)} />}
             </div>
           </section>
 
