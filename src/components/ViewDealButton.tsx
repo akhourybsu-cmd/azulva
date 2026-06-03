@@ -6,8 +6,8 @@ import { describeAffiliateState } from "@/lib/affiliates/AffiliateLinkService";
 
 function chooseUrl(deal: Pick<Deal, "sourceUrl" | "affiliateUrl" | "generatedAffiliateUrl">) {
   const s = describeAffiliateState(deal.sourceUrl, deal.affiliateUrl, deal.generatedAffiliateUrl);
-  if (s.kind === "none") return null;
-  return s.url;
+  if (s.kind === "direct" || s.kind === "manual_affiliate" || s.kind === "generated_affiliate") return s.url;
+  return null;
 }
 
 export function ViewDealButton({
