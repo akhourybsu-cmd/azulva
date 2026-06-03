@@ -12,6 +12,11 @@ import {
 } from "@/lib/admin/csvImport";
 import { mockResorts } from "@/lib/data/mockResorts";
 import type { Deal } from "@/lib/types";
+import {
+  createImportBatch, recordBatchRows, loadRecentBatches,
+  type ImportBatchRow, type ImportBatchRowEntry,
+} from "@/lib/admin/importBatches";
+import { logAudit } from "@/lib/admin/auditLog";
 
 export const Route = createFileRoute("/admin/import")({
   component: () => <AdminGuard><ImportPage /></AdminGuard>,
@@ -29,8 +34,12 @@ function ImportPage() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [result, setResult] = useState<{ imported: number; skipped: number; duplicates: number; errors: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [history, setHistory] = useState<ImportBatchRow[]>([]);
 
-  useEffect(() => { loadDealSources().then(setSources); }, []);
+  useEffect(() => {
+    loadDealSources().then(setSources);
+    loadRecentBatches().then(setHistory);
+  }, []);
 
   const existing = useMemo(() => s.customDeals, [s.customDeals]);
 
@@ -59,9 +68,14 @@ function ImportPage() {
     const uid = getCurrentUserId();
     let imported = 0, skipped = 0, duplicates = 0, errors = 0;
     const created: Deal[] = [];
+    const batchRows: ImportBatchRowEntry[] = [];
     for (let i = 0; i < rows.length; i++) {
       const v = validations[i];
-      if (v.level === "error") { errors++; continue; }
+      if (v.level === "error") {
+        errors++;
+        batchRows.push({ row_number: i + 1, status: "error", message: v.missing.join(", "), raw_data: rows[i] });
+        continue;
+      }
       const draft = rowToDeal(rows[i], v);
       if (mode === "active") draft.status = "active";
       else if (mode === "draft") draft.status = "draft";
@@ -71,29 +85,52 @@ function ImportPage() {
       }
       const dup = existing.some((e) => dealsAreLikelyDuplicate(e, draft))
         || created.some((e) => dealsAreLikelyDuplicate(e, draft));
-      if (dup) { duplicates++; skipped++; continue; }
+      if (dup) {
+        duplicates++; skipped++;
+        batchRows.push({ row_number: i + 1, status: "duplicate", message: "Likely duplicate of existing deal", raw_data: rows[i] });
+        continue;
+      }
       storeActions.addCustomDeal(draft);
       created.push(draft);
       imported++;
-      // Snapshot if signed in and price > 0
+      batchRows.push({
+        row_number: i + 1,
+        status: v.level === "warn" ? "warning" : "ok",
+        message: v.warnings.join("; ") || null,
+        raw_data: rows[i],
+        created_deal_id: draft.id,
+      });
       if (uid && draft.pricePerPerson > 0) {
         await addSnapshot({
-          dealId: draft.id,
-          pricePerPerson: draft.pricePerPerson,
-          currency: draft.currencyCode,
-          sourceId: draft.sourceId ?? null,
+          dealId: draft.id, pricePerPerson: draft.pricePerPerson,
+          currency: draft.currencyCode, sourceId: draft.sourceId ?? null,
           resortName: mockResorts.find((r) => r.id === draft.resortId)?.name ?? null,
           departureAirport: draft.departureAirport,
-          startDate: draft.startDate,
-          endDate: draft.endDate,
-          nights: draft.nights,
-          sourceUrl: draft.sourceUrl,
-          notes: "Initial CSV import snapshot",
+          startDate: draft.startDate, endDate: draft.endDate, nights: draft.nights,
+          sourceUrl: draft.sourceUrl, notes: "Initial CSV import snapshot",
           capturedByUser: uid,
         }).catch(() => {});
       }
     }
     setResult({ imported, skipped, duplicates, errors });
+    // Persist import batch + per-row history
+    const warnCountLocal = validations.filter((v) => v.level === "warn").length;
+    const batchRes = await createImportBatch({
+      filename: fileName,
+      mode,
+      totalRows: rows.length,
+      imported,
+      warnings: warnCountLocal,
+      errors,
+      duplicates,
+      status: "completed",
+      summary: { ok: imported, errors, duplicates, warnings: warnCountLocal },
+    });
+    if (batchRes.ok) {
+      await recordBatchRows(batchRes.id, batchRows).catch(() => {});
+      await logAudit({ action: "import_csv_batch", entityType: "import_batch", entityId: batchRes.id, after: { filename: fileName, imported, errors, duplicates } });
+      loadRecentBatches().then(setHistory);
+    }
     setRows([]); setValidations([]); setFileName(null);
     if (fileRef.current) fileRef.current.value = "";
   }
