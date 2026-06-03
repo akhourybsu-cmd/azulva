@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DealCard } from "@/components/DealCard";
 import { useAllDeals, useStore, storeActions } from "@/lib/store";
 import { useMemo, useState } from "react";
