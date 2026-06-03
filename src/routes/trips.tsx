@@ -24,16 +24,22 @@ function TripsPage() {
   const deals = useAllDeals();
   const [showNew, setShowNew] = useState(false);
   const [joinCode, setJoinCode] = useState("");
-  const [joinMsg, setJoinMsg] = useState<string | null>(null);
+  const [joinState, setJoinState] = useState<{ kind: "idle" | "loading" | "ok" | "error"; msg?: string }>({ kind: "idle" });
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
     if (!joinCode.trim()) return;
-    setJoinMsg("Joining…");
+    setJoinState({ kind: "loading", msg: "Joining…" });
     const res = await storeActions.joinTripRoomByCode(joinCode);
-    setJoinMsg(res.ok ? "Joined! Room added below." : res.error ?? "Failed to join");
-    if (res.ok) setJoinCode("");
+    if (res.ok) {
+      setJoinState({ kind: "ok", msg: "Joined! Your new room is below." });
+      setJoinCode("");
+    } else {
+      setJoinState({ kind: "error", msg: res.error ?? "Couldn't join that room." });
+    }
   }
+
+  const empty = s.tripRooms.length === 0;
 
   return (
     <AppShell>
@@ -52,12 +58,36 @@ function TripsPage() {
           onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
           placeholder="e.g. BACH-PC-25"
           className="flex-1 min-w-[160px] rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
+          disabled={joinState.kind === "loading"}
         />
-        <button className="rounded-lg bg-foreground px-4 py-2 text-sm text-background">Join room</button>
-        {joinMsg && <span className="w-full text-xs text-muted-foreground">{joinMsg}</span>}
+        <button disabled={joinState.kind === "loading"} className="rounded-lg bg-foreground px-4 py-2 text-sm text-background disabled:opacity-60">
+          {joinState.kind === "loading" ? "Joining…" : "Join room"}
+        </button>
+        {joinState.msg && (
+          <span className={`w-full text-xs ${
+            joinState.kind === "ok" ? "text-[var(--success)]" :
+            joinState.kind === "error" ? "text-destructive" :
+            "text-muted-foreground"}`}>
+            {joinState.msg}
+          </span>
+        )}
       </form>
 
       {showNew && <NewRoomForm onDone={() => setShowNew(false)} />}
+
+      {empty ? (
+        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+          <Users className="mx-auto h-8 w-8 text-muted-foreground" />
+          <h2 className="mt-3 font-display text-xl">No Trip Rooms yet</h2>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+            Create a Trip Room or join one with an invite code. Trip Rooms keep votes, comments, and saved deals in one place.
+          </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <button onClick={() => setShowNew(true)} className="rounded-full bg-foreground px-4 py-2 text-sm text-background">Create a room</button>
+            <button onClick={() => storeActions.createDemoTripRoom()} className="rounded-full border border-border bg-card px-4 py-2 text-sm hover:bg-muted">Load a sample room</button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         {s.tripRooms.map((t) => {
