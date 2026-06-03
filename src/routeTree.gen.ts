@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ExploreSlugRouteImport } from './routes/explore.$slug'
 import { Route as DealsDealIdRouteImport } from './routes/deals.$dealId'
 
 const ExploreRoute = ExploreRouteImport.update({
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExploreSlugRoute = ExploreSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ExploreRoute,
+} as any)
 const DealsDealIdRoute = DealsDealIdRouteImport.update({
   id: '/deals/$dealId',
   path: '/deals/$dealId',
@@ -31,31 +37,34 @@ const DealsDealIdRoute = DealsDealIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/explore': typeof ExploreRoute
+  '/explore': typeof ExploreRouteWithChildren
   '/deals/$dealId': typeof DealsDealIdRoute
+  '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/explore': typeof ExploreRoute
+  '/explore': typeof ExploreRouteWithChildren
   '/deals/$dealId': typeof DealsDealIdRoute
+  '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/explore': typeof ExploreRoute
+  '/explore': typeof ExploreRouteWithChildren
   '/deals/$dealId': typeof DealsDealIdRoute
+  '/explore/$slug': typeof ExploreSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/explore' | '/deals/$dealId'
+  fullPaths: '/' | '/explore' | '/deals/$dealId' | '/explore/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/explore' | '/deals/$dealId'
-  id: '__root__' | '/' | '/explore' | '/deals/$dealId'
+  to: '/' | '/explore' | '/deals/$dealId' | '/explore/$slug'
+  id: '__root__' | '/' | '/explore' | '/deals/$dealId' | '/explore/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ExploreRoute: typeof ExploreRoute
+  ExploreRoute: typeof ExploreRouteWithChildren
   DealsDealIdRoute: typeof DealsDealIdRoute
 }
 
@@ -75,6 +84,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/explore/$slug': {
+      id: '/explore/$slug'
+      path: '/$slug'
+      fullPath: '/explore/$slug'
+      preLoaderRoute: typeof ExploreSlugRouteImport
+      parentRoute: typeof ExploreRoute
+    }
     '/deals/$dealId': {
       id: '/deals/$dealId'
       path: '/deals/$dealId'
@@ -85,9 +101,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ExploreRouteChildren {
+  ExploreSlugRoute: typeof ExploreSlugRoute
+}
+
+const ExploreRouteChildren: ExploreRouteChildren = {
+  ExploreSlugRoute: ExploreSlugRoute,
+}
+
+const ExploreRouteWithChildren =
+  ExploreRoute._addFileChildren(ExploreRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ExploreRoute: ExploreRoute,
+  ExploreRoute: ExploreRouteWithChildren,
   DealsDealIdRoute: DealsDealIdRoute,
 }
 export const routeTree = rootRouteImport
