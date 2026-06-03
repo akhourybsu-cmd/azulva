@@ -47,11 +47,11 @@ export async function upsertDealSource(s: Omit<DealSourceRow, "id"> & { id?: str
   if (s.id) {
     const { error } = await supabase.from("deal_sources").update(payload).eq("id", s.id);
     if (error) return { ok: false, error: error.message };
-    return { ok: true };
+    return { ok: true, id: s.id };
   }
-  const { error } = await supabase.from("deal_sources").insert(payload);
+  const { data, error } = await supabase.from("deal_sources").insert(payload).select("id").single();
   if (error) return { ok: false, error: error.message };
-  return { ok: true };
+  return { ok: true, id: data?.id as string | undefined };
 }
 
 export async function toggleDealSourceEnabled(id: string, enabled: boolean) {
