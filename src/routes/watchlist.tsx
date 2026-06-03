@@ -43,7 +43,13 @@ function WatchlistPage() {
         </button>
       </header>
 
-      {showNew && <NewWatchlistForm onDone={() => setShowNew(false)} />}
+      {showNew && <NewWatchlistForm prefillDest={prefillDest} onDone={() => { setShowNew(false); setPrefillDest(null); }} />}
+
+      <div className="mt-4 rounded-2xl border border-border bg-card p-3 text-sm">
+        <Link to="/escape-board" className="inline-flex items-center gap-1.5 font-medium text-[var(--ocean)] hover:underline">
+          <Bookmark className="h-4 w-4" /> See your Escape Board → saved destinations &amp; deals
+        </Link>
+      </div>
 
       <section className="mt-6">
         <h2 className="mb-3 flex items-center gap-2 font-display text-xl"><Bell className="h-5 w-5" /> Saved searches</h2>
