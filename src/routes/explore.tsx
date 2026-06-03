@@ -52,6 +52,9 @@ function ExplorePage() {
                     {stats.count} deal{stats.count > 1 ? "s" : ""}
                   </span>
                 )}
+                <div className="absolute left-3 top-3">
+                  <SaveDestinationButton destinationId={d.id} />
+                </div>
               </div>
               <div className="p-4">
                 <div className="flex flex-wrap gap-1.5">
