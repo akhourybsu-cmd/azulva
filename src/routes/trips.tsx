@@ -23,6 +23,17 @@ function TripsPage() {
   const s = useStore();
   const deals = useAllDeals();
   const [showNew, setShowNew] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinMsg, setJoinMsg] = useState<string | null>(null);
+
+  async function handleJoin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+    setJoinMsg("Joining…");
+    const res = await storeActions.joinTripRoomByCode(joinCode);
+    setJoinMsg(res.ok ? "Joined! Room added below." : res.error ?? "Failed to join");
+    if (res.ok) setJoinCode("");
+  }
 
   return (
     <AppShell>
@@ -33,6 +44,18 @@ function TripsPage() {
         </div>
         <button onClick={() => setShowNew((v) => !v)} className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm text-background"><Plus className="h-4 w-4" /> New room</button>
       </header>
+
+      <form onSubmit={handleJoin} className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Have an invite code?</span>
+        <input
+          value={joinCode}
+          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+          placeholder="e.g. BACH-PC-25"
+          className="flex-1 min-w-[160px] rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
+        />
+        <button className="rounded-lg bg-foreground px-4 py-2 text-sm text-background">Join room</button>
+        {joinMsg && <span className="w-full text-xs text-muted-foreground">{joinMsg}</span>}
+      </form>
 
       {showNew && <NewRoomForm onDone={() => setShowNew(false)} />}
 
