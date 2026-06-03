@@ -30,9 +30,13 @@ import {
   markVerifiedToday,
   recalculateScore,
   duplicateDeal,
+  archiveDeal,
 } from "@/lib/admin/dealOps";
 import { getReadiness, readinessLabel, readinessColorClass } from "@/lib/dealReadiness";
 import { getAppMode, isProductionMode } from "@/lib/appMode";
+import { useAppSettings, setAppSetting, type AppSettings } from "@/lib/admin/appSettings";
+import { logAudit } from "@/lib/admin/auditLog";
+import { loadRecentAudit, type AuditLogEntry } from "@/lib/admin/auditLog";
 import type { Deal } from "@/lib/types";
 
 export const Route = createFileRoute("/admin")({
@@ -48,20 +52,24 @@ function AdminPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [sources, setSources] = useState<DealSourceRow[]>([]);
   const [analytics, setAnalytics] = useState<Awaited<ReturnType<typeof loadClickAnalytics>> | null>(null);
+  const [audit, setAudit] = useState<AuditLogEntry[]>([]);
+  const settings = useAppSettings();
   const fetchRecent = useServerFn(getApiHealthRecent);
   const fetchIntel = useServerFn(getDestinationIntelligence);
 
   async function loadAll() {
-    const [providerHealth, recentRes, src, an] = await Promise.all([
+    const [providerHealth, recentRes, src, an, log] = await Promise.all([
       Promise.all(allProviders.map((p) => p.health())),
       fetchRecent(),
       loadDealSources(),
       loadClickAnalytics(),
+      loadRecentAudit(50),
     ]);
     setHealth(providerHealth);
     setRecent(recentRes.entries);
     setSources(src);
     setAnalytics(an);
+    setAudit(log);
   }
 
   useEffect(() => { loadAll(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
@@ -111,10 +119,13 @@ function AdminPage() {
 
   const adminLinks = [
     { label: "Dashboard", to: "#dash" },
+    { label: "Launch Readiness", to: "#launch" },
+    { label: "Settings", to: "#settings" },
     { label: "Deals", to: "#deals" },
     { label: "Deal Quality", to: "#quality" },
     { label: "Deal Sources", to: "#sources" },
     { label: "Outbound Clicks", to: "#clicks" },
+    { label: "Audit Log", to: "#audit" },
     { label: "Destinations", to: "#destinations" },
     { label: "Resorts", to: "#resorts" },
     { label: "API Health", to: "#health" },
