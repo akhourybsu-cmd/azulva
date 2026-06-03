@@ -346,6 +346,11 @@ function AdminPage() {
 
           <AuditLogSection audit={audit} />
 
+          <WaitlistSection />
+
+          <FeedbackSection />
+
+
           <section id="destinations" className="rounded-2xl border border-border bg-card p-5">
             <h2 className="font-display text-xl mb-3">Destinations</h2>
             <ul className="grid gap-2 sm:grid-cols-2">
