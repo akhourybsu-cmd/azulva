@@ -836,9 +836,43 @@ function AffiliateSetupPanel({ deals, sources, analytics, onChange }: {
             <li className="flex justify-between"><span>Deals with manual affiliate URL</span><span className="tabular-nums">{withManual.length}</span></li>
             <li className="flex justify-between"><span>Deals with direct-only URL</span><span className="tabular-nums">{directOnly.length}</span></li>
             <li className="flex justify-between"><span>Deals with no outbound URL</span><span className="tabular-nums">{noOutbound.length}</span></li>
+            <li className="flex justify-between"><span>Sources requiring manual verification</span><span className="tabular-nums">{manualVerifySources.length}</span></li>
+            <li className="flex justify-between"><span>Reference-only sources</span><span className="tabular-nums">{refOnlySources.length}</span></li>
           </ul>
         </div>
       </div>
+
+      {analytics && analytics.total > 0 && (
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="rounded-xl border border-border p-3">
+            <div className="mb-2 text-sm font-semibold">Clicks by surface (clickedFrom)</div>
+            <ul className="space-y-1 text-xs">
+              {analytics.byClickedFrom.map((r) => (
+                <li key={r.clicked_from} className="flex justify-between"><span>{r.clicked_from}</span><span className="tabular-nums">{r.count}</span></li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Unknown / "other" attribution: <span className="font-semibold">{analytics.unknownAttributionCount}</span> of {analytics.total}.
+            </p>
+          </div>
+          <div className="rounded-xl border border-border p-3">
+            <div className="mb-2 text-sm font-semibold">Playbook flags</div>
+            {manualVerifySources.length === 0 && refOnlySources.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No sources flagged.</p>
+            ) : (
+              <ul className="space-y-1 text-xs">
+                {manualVerifySources.map((s) => (
+                  <li key={s.id} className="flex justify-between"><span>{s.name}</span><span className="text-muted-foreground">manual verify</span></li>
+                ))}
+                {refOnlySources.map((s) => (
+                  <li key={`r-${s.id}`} className="flex justify-between"><span>{s.name}</span><span className="text-muted-foreground">reference only</span></li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
 
       <div className="mt-4 rounded-xl border border-border p-3">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
