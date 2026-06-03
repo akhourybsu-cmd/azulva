@@ -270,6 +270,8 @@ function AdminPage() {
             )}
           </section>
 
+          <AffiliateSetupPanel deals={deals} sources={sources} onChange={loadAll} />
+
           <AuditLogSection audit={audit} />
 
           <section id="destinations" className="rounded-2xl border border-border bg-card p-5">
