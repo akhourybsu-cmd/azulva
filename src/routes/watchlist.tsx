@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { DealCard } from "@/components/DealCard";
 import { useAllDeals, useStore, storeActions } from "@/lib/store";
-import { useState } from "react";
-import { Bell, Heart, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, Heart, Plus, Trash2, Bookmark } from "lucide-react";
 import { mockDestinations } from "@/lib/data/mockDestinations";
+import { useAuth } from "@/hooks/use-auth";
+import { loadProfileAndPrefs } from "@/lib/cloudSync";
 
 export const Route = createFileRoute("/watchlist")({
   head: () => ({ meta: [{ title: "Deal Watches — Azulva" }] }),
@@ -16,6 +18,18 @@ function WatchlistPage() {
   const deals = useAllDeals();
   const saved = deals.filter((d) => s.savedDealIds.includes(d.id));
   const [showNew, setShowNew] = useState(false);
+  const [prefillDest, setPrefillDest] = useState<string | null>(null);
+
+  // Read ?destination=ID and auto-open the new-watch form.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const d = sp.get("destination");
+    if (d) {
+      setPrefillDest(d);
+      setShowNew(true);
+    }
+  }, []);
 
   return (
     <AppShell>
@@ -29,7 +43,13 @@ function WatchlistPage() {
         </button>
       </header>
 
-      {showNew && <NewWatchlistForm onDone={() => setShowNew(false)} />}
+      {showNew && <NewWatchlistForm prefillDest={prefillDest} onDone={() => { setShowNew(false); setPrefillDest(null); }} />}
+
+      <div className="mt-4 rounded-2xl border border-border bg-card p-3 text-sm">
+        <Link to="/escape-board" className="inline-flex items-center gap-1.5 font-medium text-[var(--ocean)] hover:underline">
+          <Bookmark className="h-4 w-4" /> See your Escape Board → saved destinations &amp; deals
+        </Link>
+      </div>
 
       <section className="mt-6">
         <h2 className="mb-3 flex items-center gap-2 font-display text-xl"><Bell className="h-5 w-5" /> Saved searches</h2>
@@ -84,12 +104,29 @@ function WatchlistPage() {
   );
 }
 
-function NewWatchlistForm({ onDone }: { onDone: () => void }) {
+function NewWatchlistForm({ onDone, prefillDest }: { onDone: () => void; prefillDest?: string | null }) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [airport, setAirport] = useState("BOS");
   const [maxPrice, setMaxPrice] = useState(1500);
   const [minScore, setMinScore] = useState(75);
-  const [dest, setDest] = useState<string>("Anywhere");
+  const [dest, setDest] = useState<string>(prefillDest ?? "Anywhere");
+
+  // Prefill airport + budget from saved profile preferences.
+  useEffect(() => {
+    let active = true;
+    if (!user) return;
+    loadProfileAndPrefs(user.id).then(({ profile, prefs }) => {
+      if (!active) return;
+      if (profile.home_airport) setAirport(profile.home_airport);
+      if (prefs.budgetPerPerson) setMaxPrice(prefs.budgetPerPerson);
+      if (prefillDest) {
+        const d = mockDestinations.find((x) => x.id === prefillDest);
+        if (d) setName(`Deals to ${d.name}`);
+      }
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [user?.id, prefillDest]);
   return (
     <form
       onSubmit={(e) => {

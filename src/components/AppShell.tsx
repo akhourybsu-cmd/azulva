@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Compass, Heart, Sparkles, Users, User, Shield, LogIn, LogOut } from "lucide-react";
+import { Compass, Heart, Sparkles, Users, User, Shield, LogIn, LogOut, Bookmark } from "lucide-react";
 import { AzulvaLogo, AzulvaEmblem } from "@/components/Brand";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,7 +9,8 @@ import { setCurrentUser } from "@/lib/store";
 const navItems = [
   { to: "/", label: "Deals", icon: Sparkles },
   { to: "/explore", label: "Explore", icon: Compass },
-  { to: "/watchlist", label: "Watchlist", icon: Heart },
+  { to: "/escape-board", label: "Board", icon: Bookmark },
+  { to: "/watchlist", label: "Watch", icon: Heart },
   { to: "/trips", label: "Trips", icon: Users },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
@@ -65,7 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur md:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-5">
+        <div className="mx-auto grid max-w-md grid-cols-6">
           {navItems.map(({ to, label, icon: Icon }) => (
             <Link
               key={to} to={to}
