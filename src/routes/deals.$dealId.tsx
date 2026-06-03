@@ -6,9 +6,14 @@ import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { mockPriceHistoryForDeal } from "@/lib/data/mockDeals";
 import { storeActions } from "@/lib/store";
-import { ExternalLink, Flag, Plane, Hotel, Utensils, Car, Briefcase, RefreshCw, Calendar, MapPin, AlertTriangle } from "lucide-react";
-import { useMemo } from "react";
+import { Flag, Plane, Hotel, Utensils, Car, Briefcase, RefreshCw, Calendar, MapPin, AlertTriangle, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { DealDestinationContextCard } from "@/components/DestinationIntelligence";
+import { DealTrustPills } from "@/components/DealTrustPills";
+import { ViewDealButton } from "@/components/ViewDealButton";
+import { loadSnapshotsForDeal, type PriceSnapshotRow } from "@/lib/admin/priceSnapshots";
+import { freshnessOf, freshnessLabel } from "@/lib/dealFreshness";
+import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/deals/$dealId")({
   component: DealDetailPage,
@@ -22,7 +27,16 @@ function DealDetailPage() {
 
   const dest = mockDestinations.find((d) => d.id === deal.destinationId)!;
   const resort = mockResorts.find((r) => r.id === deal.resortId)!;
-  const history = useMemo(() => mockPriceHistoryForDeal(deal.id), [deal.id]);
+  const fallbackHistory = useMemo(() => mockPriceHistoryForDeal(deal.id), [deal.id]);
+  const [snapshots, setSnapshots] = useState<PriceSnapshotRow[]>([]);
+  useEffect(() => {
+    loadSnapshotsForDeal(deal.id).then(setSnapshots).catch(() => {});
+  }, [deal.id]);
+  const history = snapshots.length >= 2
+    ? snapshots.map((s) => ({ capturedAt: s.captured_at, pricePerPerson: Number(s.price_per_person) }))
+    : fallbackHistory;
+  const freshness = freshnessOf(deal);
+
 
   const similar = deals.filter((d) => d.destinationId === deal.destinationId && d.id !== deal.id).slice(0, 3);
 
