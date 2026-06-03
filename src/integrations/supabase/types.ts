@@ -321,6 +321,10 @@ export type Database = {
         Args: { _room: string; _user: string }
         Returns: boolean
       }
+      join_trip_room_by_code: {
+        Args: { _code: string; _display_name?: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
