@@ -151,18 +151,19 @@ function AdminPage() {
                 <tbody>
                   {deals.map((d) => {
                     const f = freshnessOf(d);
+                    const isCustom = !!s.customDeals.find((cd) => cd.id === d.id);
                     return (
-                      <tr key={d.id} className="border-t border-border">
-                        <td className="py-2"><Link to="/deals/$dealId" params={{ dealId: d.id }} className="hover:underline">{d.title}</Link></td>
-                        <td className="text-xs">{d.sourceId ? (sourceLookup.get(d.sourceId)?.name ?? d.sourceLabel) : d.sourceLabel}</td>
+                      <tr key={d.id} className="border-t border-border align-top">
+                        <td className="py-2"><Link to="/deals/$dealId" params={{ dealId: d.id }} className="hover:underline">{d.title}</Link>
+                          {d.status !== "active" && <span className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase">{d.status}</span>}
+                        </td>
+                        <td className="text-xs">{resolveSourceName(d, sources)}</td>
                         <td>${d.pricePerPerson}</td>
                         <td>{d.dealScore}</td>
                         <td className="text-xs">{freshnessLabel(f)}</td>
-                        <td className="space-x-2">
+                        <td className="space-x-1 whitespace-nowrap py-2">
                           <SnapshotInline deal={d} onAdded={loadAll} />
-                          {s.customDeals.find((cd) => cd.id === d.id) && (
-                            <button onClick={() => storeActions.deleteCustomDeal(d.id)} className="text-xs text-destructive hover:underline">Delete</button>
-                          )}
+                          {isCustom && <DealOpsMenu deal={d} />}
                         </td>
                       </tr>
                     );
