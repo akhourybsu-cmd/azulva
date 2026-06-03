@@ -49,15 +49,15 @@ export async function submitWaitlist(input: WaitlistInput): Promise<WaitlistResu
   }
   const { data, error } = await supabase.rpc("submit_waitlist", {
     _email: email,
-    _name: input.name ?? null,
-    _home_airport: input.homeAirport ?? null,
-    _preferred_destinations: input.preferredDestinations ?? null,
-    _max_budget_per_person: input.maxBudgetPerPerson ?? null,
-    _trip_type: input.tripType ?? null,
-    _group_size: input.groupSize ?? null,
-    _priorities: input.priorities ?? null,
-    _referred_by: input.referredBy ?? null,
-    _source: input.source ?? null,
+    _name: input.name ?? undefined,
+    _home_airport: input.homeAirport ?? undefined,
+    _preferred_destinations: input.preferredDestinations ?? undefined,
+    _max_budget_per_person: input.maxBudgetPerPerson ?? undefined,
+    _trip_type: input.tripType ?? undefined,
+    _group_size: input.groupSize ?? undefined,
+    _priorities: input.priorities ?? undefined,
+    _referred_by: input.referredBy ?? undefined,
+    _source: input.source ?? undefined,
   });
   if (error) return { ok: false, error: error.message };
   const row = Array.isArray(data) ? data[0] : data;
