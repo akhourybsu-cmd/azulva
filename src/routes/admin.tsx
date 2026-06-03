@@ -453,3 +453,25 @@ function SourceForm({ onSaved }: { onSaved: () => void }) {
     </form>
   );
 }
+
+function DealOpsMenu({ deal }: { deal: Deal }) {
+  function ask(label: string): string | null { const v = prompt(label); return v; }
+  return (
+    <span className="inline-flex flex-wrap gap-1 text-[10px]">
+      {deal.status !== "flagged" ? (
+        <button onClick={() => { const r = ask("Flag reason?"); if (r !== null) storeActions.updateCustomDeal(deal.id, (d) => flagDeal(d, r)); }} className="rounded bg-muted px-1.5 py-0.5 hover:bg-[var(--warning)]/20">Flag</button>
+      ) : (
+        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => unflagDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Unflag</button>
+      )}
+      {deal.status !== "expired" ? (
+        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => expireDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Expire</button>
+      ) : (
+        <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => restoreDeal(d))} className="rounded bg-muted px-1.5 py-0.5">Restore</button>
+      )}
+      <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => markVerifiedToday(d))} className="rounded bg-muted px-1.5 py-0.5">Verify</button>
+      <button onClick={() => storeActions.updateCustomDeal(deal.id, (d) => recalculateScore(d))} className="rounded bg-muted px-1.5 py-0.5">Recalc</button>
+      <button onClick={() => storeActions.duplicateCustomDeal(deal.id, duplicateDeal)} className="rounded bg-muted px-1.5 py-0.5">Duplicate</button>
+      <button onClick={() => { if (confirm("Delete deal?")) storeActions.deleteCustomDeal(deal.id); }} className="rounded bg-destructive/15 px-1.5 py-0.5 text-destructive">Delete</button>
+    </span>
+  );
+}
