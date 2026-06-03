@@ -2,6 +2,7 @@
 // All functions are best-effort; callers log errors but UI keeps working
 // from in-memory state.
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type { Deal, DealVote, OutboundClick, TripRoom, Watchlist } from "./types";
 
 type CloudState = {
@@ -149,7 +150,7 @@ export async function migrateLocalToCloud(
       .from("watchlists").select("*", { count: "exact", head: true }).eq("user_id", userId);
     if ((wlCount ?? 0) === 0 && local.watchlists.length > 0) {
       await supabase.from("watchlists").insert(
-        local.watchlists.map((w) => ({ user_id: userId, data: w as unknown as Record<string, unknown> })),
+        local.watchlists.map((w) => ({ user_id: userId, data: w as unknown as Json })),
       );
     }
 
@@ -223,7 +224,7 @@ export async function cloudToggleSavedDestination(userId: string, destId: string
 
 export async function cloudAddWatchlist(userId: string, w: Watchlist) {
   const { data, error } = await supabase
-    .from("watchlists").insert({ user_id: userId, data: w }).select("id").single();
+    .from("watchlists").insert({ user_id: userId, data: w as unknown as Json }).select("id").single();
   if (error || !data) return w.id;
   return data.id;
 }
@@ -279,7 +280,7 @@ export async function cloudRecordOutboundClick(c: OutboundClick, userId: string 
 
 export async function cloudAddCustomDeal(userId: string, d: Deal) {
   await supabase.from("custom_deals").upsert(
-    { id: d.id, data: d, created_by: userId },
+    { id: d.id, data: d as unknown as Json, created_by: userId },
     { onConflict: "id" },
   );
 }
@@ -290,7 +291,7 @@ export async function cloudDeleteCustomDeal(id: string) {
 
 export async function cloudJoinByCode(code: string, displayName?: string | null) {
   const { data, error } = await supabase.rpc("join_trip_room_by_code", {
-    _code: code, _display_name: displayName ?? null,
+    _code: code, _display_name: displayName ?? undefined,
   });
   if (error) throw error;
   return data as string;
