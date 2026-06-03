@@ -5,7 +5,12 @@ import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { allProviders } from "@/lib/api/providers";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import type { ProviderHealth } from "@/lib/api/ProviderTypes";
+import {
+  getApiHealthRecent,
+  getDestinationIntelligence,
+} from "@/lib/providers/destinationIntelligence.functions";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Azulva Admin" }] }),
@@ -16,10 +21,41 @@ function AdminPage() {
   const s = useStore();
   const deals = useAllDeals();
   const [health, setHealth] = useState<ProviderHealth[]>([]);
+  const [recent, setRecent] = useState<ProviderHealth[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const fetchRecent = useServerFn(getApiHealthRecent);
+  const fetchIntel = useServerFn(getDestinationIntelligence);
 
-  useEffect(() => {
-    Promise.all(allProviders.map((p) => p.health())).then(setHealth);
-  }, []);
+  async function loadHealth() {
+    const [providerHealth, recentRes] = await Promise.all([
+      Promise.all(allProviders.map((p) => p.health())),
+      fetchRecent(),
+    ]);
+    setHealth(providerHealth);
+    setRecent(recentRes.entries);
+  }
+
+  useEffect(() => { loadHealth(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  async function refreshAllDestinations() {
+    setRefreshing(true);
+    try {
+      for (const d of mockDestinations) {
+        await fetchIntel({
+          data: {
+            latitude: d.latitude,
+            longitude: d.longitude,
+            countryCode: d.countryCode,
+            currencyCode: d.currencyCode,
+            placeQuery: `${d.name}, ${d.country}`,
+          },
+        });
+      }
+      await loadHealth();
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   const adminLinks = [
     { label: "Dashboard", to: "#dash" },
@@ -110,7 +146,16 @@ function AdminPage() {
           </section>
 
           <section id="health" className="rounded-2xl border border-border bg-card p-5">
-            <h2 className="font-display text-xl mb-3">API health</h2>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-xl">API health</h2>
+              <button
+                onClick={refreshAllDestinations}
+                disabled={refreshing}
+                className="rounded-full bg-foreground px-3 py-1.5 text-xs text-background disabled:opacity-60"
+              >
+                {refreshing ? "Refreshing…" : "Refresh destination intelligence"}
+              </button>
+            </div>
             <ul className="space-y-1.5 text-sm">
               {health.map((h) => (
                 <li key={h.providerName} className="flex items-center justify-between rounded-lg border border-border p-2">
@@ -119,6 +164,21 @@ function AdminPage() {
                 </li>
               ))}
             </ul>
+            {recent.length > 0 && (
+              <div className="mt-4">
+                <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Recent calls</div>
+                <ul className="max-h-56 overflow-auto space-y-1 text-xs">
+                  {recent.map((h, i) => (
+                    <li key={i} className="flex items-center justify-between border-b border-border py-1">
+                      <span className="font-medium">{h.providerName}</span>
+                      <span className={h.status === "ok" ? "text-[var(--success)]" : "text-destructive"}>{h.status}</span>
+                      <span className="text-muted-foreground">{h.message}</span>
+                      <span className="text-muted-foreground" suppressHydrationWarning>{new Date(h.lastCheckedAt).toLocaleTimeString()}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </section>
         </div>
       </div>

@@ -4,7 +4,12 @@ import { DealCard } from "@/components/DealCard";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { useAllDeals } from "@/lib/store";
-import { CloudRain, Sun, Globe2, Coins, Languages } from "lucide-react";
+import { CloudRain, Sun } from "lucide-react";
+import {
+  WeatherNowCard,
+  DestinationBasicsCard,
+  MoneyBasicsCard,
+} from "@/components/DestinationIntelligence";
 
 export const Route = createFileRoute("/explore/$slug")({
   component: DestinationDetail,
@@ -96,19 +101,49 @@ function DestinationDetail() {
             <p className="mt-3 text-[11px] text-muted-foreground">Weather data will come from Open-Meteo once configured.</p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="mb-3 font-display text-lg">Country info</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2"><Globe2 className="h-4 w-4 text-muted-foreground" /> {dest.country} ({dest.countryCode})</li>
-              <li className="flex items-center gap-2"><Coins className="h-4 w-4 text-muted-foreground" /> {dest.currencyCode}</li>
-              <li className="flex items-center gap-2"><Languages className="h-4 w-4 text-muted-foreground" /> {dest.languageCodes.join(", ")}</li>
-            </ul>
-            <p className="mt-3 text-[11px] text-muted-foreground">Country metadata, flags, and currency conversion will be powered by REST Countries + Frankfurter.</p>
-          </div>
+          <WeatherNowCard
+            input={{
+              destinationId: dest.id,
+              latitude: dest.latitude,
+              longitude: dest.longitude,
+              countryCode: dest.countryCode,
+              currencyCode: dest.currencyCode,
+              placeQuery: `${dest.name}, ${dest.country}`,
+            }}
+          />
+
+          <DestinationBasicsCard
+            input={{
+              destinationId: dest.id,
+              latitude: dest.latitude,
+              longitude: dest.longitude,
+              countryCode: dest.countryCode,
+              currencyCode: dest.currencyCode,
+            }}
+            fallback={{
+              country: dest.country,
+              region: dest.region,
+              languages: dest.languageCodes,
+              currencyCode: dest.currencyCode,
+            }}
+          />
+
+          <MoneyBasicsCard
+            input={{
+              destinationId: dest.id,
+              latitude: dest.latitude,
+              longitude: dest.longitude,
+              countryCode: dest.countryCode,
+              currencyCode: dest.currencyCode,
+            }}
+            fallback={{ currencyCode: dest.currencyCode }}
+          />
 
           <div className="rounded-2xl border border-border bg-card p-5">
-            <h3 className="mb-2 font-display text-lg">Things to do</h3>
-            <p className="text-sm text-muted-foreground">Attractions and points of interest will be populated by OpenTripMap when configured.</p>
+            <h3 className="mb-2 font-display text-lg">Things to Know</h3>
+            <p className="text-sm text-muted-foreground">
+              Travel advisories, points of interest, and resort-zone notes will appear here as we wire in additional sources.
+            </p>
           </div>
         </aside>
       </div>

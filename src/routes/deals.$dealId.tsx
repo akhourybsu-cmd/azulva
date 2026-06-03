@@ -8,6 +8,7 @@ import { mockPriceHistoryForDeal } from "@/lib/data/mockDeals";
 import { storeActions } from "@/lib/store";
 import { ExternalLink, Flag, Plane, Hotel, Utensils, Car, Briefcase, RefreshCw, Calendar, MapPin, AlertTriangle } from "lucide-react";
 import { useMemo } from "react";
+import { DealDestinationContextCard } from "@/components/DestinationIntelligence";
 
 export const Route = createFileRoute("/deals/$dealId")({
   component: DealDetailPage,
@@ -152,11 +153,24 @@ function DealDetailPage() {
 
           <AddToTripButton dealId={deal.id} />
 
+          <DealDestinationContextCard
+            input={{
+              destinationId: dest.id,
+              latitude: dest.latitude,
+              longitude: dest.longitude,
+              countryCode: dest.countryCode,
+              currencyCode: dest.currencyCode,
+            }}
+            destName={dest.name}
+            bestMonths={dest.bestMonths}
+            rainyMonths={dest.rainyMonths}
+          />
+
           <div className="rounded-2xl border border-border bg-card p-4 text-xs text-muted-foreground">
             <Link to="/explore/$slug" params={{ slug: dest.slug }} className="font-semibold text-foreground hover:underline">
               See more in {dest.name} →
             </Link>
-            <div className="mt-1">Weather, attractions, and country info on the destination page.</div>
+            <div className="mt-1">Weather, currency, and country basics on the destination page.</div>
           </div>
 
           <button className="w-full rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground hover:bg-muted">
