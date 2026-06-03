@@ -1,10 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Plane, Hotel, Utensils, Car, Briefcase, RefreshCw, Plus, ExternalLink, AlertCircle, CheckCircle2, HelpCircle, X } from "lucide-react";
+import { Heart, Plane, Hotel, Utensils, Car, Briefcase, RefreshCw, Plus, AlertCircle, CheckCircle2, HelpCircle, X } from "lucide-react";
 import type { Deal, InclusionState, DealScoreLabel, AllInclusiveConfidence } from "@/lib/types";
 import { mockDestinations } from "@/lib/data/mockDestinations";
 import { mockResorts } from "@/lib/data/mockResorts";
 import { storeActions, useStore } from "@/lib/store";
 import { formatDistanceToNow } from "date-fns";
+import { DealTrustPills } from "@/components/DealTrustPills";
+import { ViewDealButton } from "@/components/ViewDealButton";
+
 
 function scoreColor(label: DealScoreLabel): string {
   switch (label) {
@@ -86,11 +89,10 @@ export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
 
         {!compact && (
           <>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <ConfidenceBadge c={deal.allInclusiveConfidence} />
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <DealTrustPills deal={deal} dense />
               {deal.adultsOnly && <span className="rounded-full bg-[var(--coral)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--coral)]">Adults-only</span>}
-              {deal.familyFriendly && <span className="rounded-full bg-[var(--ocean)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--ocean)]">Family-friendly</span>}
-              <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">{deal.sourceLabel}</span>
+              {deal.familyFriendly && <span className="rounded-full bg-[var(--ocean)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--ocean)]">Family</span>}
             </div>
 
             <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
@@ -104,6 +106,7 @@ export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
 
             <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
               <span suppressHydrationWarning>Last checked {formatDistanceToNow(new Date(deal.lastCheckedAt), { addSuffix: true })}</span>
+              <ConfidenceBadge c={deal.allInclusiveConfidence} />
             </div>
 
             <div className="mt-4 flex items-center gap-2">
@@ -113,18 +116,12 @@ export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
               >
                 View Details
               </Link>
-              <a
-                href={deal.affiliateUrl ?? deal.sourceUrl}
-                target="_blank" rel="noopener noreferrer"
-                onClick={() => storeActions.recordOutboundClick({
-                  id: crypto.randomUUID(), dealId: deal.id,
-                  outboundUrl: deal.affiliateUrl ?? deal.sourceUrl,
-                  clickedAt: new Date().toISOString(),
-                })}
+              <ViewDealButton
+                deal={deal}
                 className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted"
               >
-                Book <ExternalLink className="h-3.5 w-3.5" />
-              </a>
+                Book
+              </ViewDealButton>
             </div>
           </>
         )}
@@ -132,6 +129,7 @@ export function DealCard({ deal, compact }: { deal: Deal; compact?: boolean }) {
     </div>
   );
 }
+
 
 export function AddToTripButton({ dealId }: { dealId: string }) {
   const s = useStore();
