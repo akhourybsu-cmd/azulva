@@ -98,7 +98,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <p className="mt-8 text-xs text-muted-foreground">
-            Some links may be affiliate links. We may earn a commission if you book through them, at no additional cost to you. Prices and availability are not guaranteed — always verify with the booking partner before purchase.
+            Azulva helps travelers discover and compare vacation deals. Some links may be affiliate links, and prices should be verified with the booking provider before purchase.
           </p>
         </div>
       </footer>
