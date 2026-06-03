@@ -2,7 +2,15 @@
 // Signed-out users: localStorage only.
 // Signed-in users: hydrated from Supabase; writes go to cloud + local cache.
 import { useSyncExternalStore } from "react";
-import type { Watchlist, TripRoom, DealVote, OutboundClick, Deal } from "./types";
+import type {
+  Watchlist,
+  TripRoom,
+  DealVote,
+  DestinationVote,
+  OutboundClick,
+  Deal,
+  TripRoomMemberPreferences,
+} from "./types";
 import { mockDeals } from "./data/mockDeals";
 import * as cloud from "./cloudSync";
 
@@ -54,6 +62,12 @@ const SEED: StoreShape = {
       tripType: "bachelorette", inviteCode: "BACH-PC-25",
       memberNames: ["You", "Sam", "Jess", "Mia", "Riley"],
       dealIds: ["d-2", "d-4", "d-25"],
+      destinationIds: ["dst-punta-cana", "dst-cancun"],
+      destinationVotes: [
+        { id: "dv-1", tripRoomId: "tr-1", destinationId: "dst-punta-cana", userId: "u-sam", userName: "Sam", voteType: "love", createdAt: "2026-06-01T00:00:00.000Z" },
+        { id: "dv-2", tripRoomId: "tr-1", destinationId: "dst-punta-cana", userId: "u-jess", userName: "Jess", voteType: "interested", createdAt: "2026-06-01T00:00:00.000Z" },
+        { id: "dv-3", tripRoomId: "tr-1", destinationId: "dst-cancun", userId: "u-mia", userName: "Mia", voteType: "not_my_vibe", createdAt: "2026-06-01T00:00:00.000Z" },
+      ],
       createdAt: "2026-06-01T00:00:00.000Z",
     },
     {
@@ -64,6 +78,8 @@ const SEED: StoreShape = {
       tripType: "family", inviteCode: "FAM-SB-25",
       memberNames: ["You", "Partner"],
       dealIds: ["d-3", "d-15", "d-18"],
+      destinationIds: ["dst-cancun", "dst-bahamas"],
+      destinationVotes: [],
       createdAt: "2026-06-01T00:00:00.000Z",
     },
     {
@@ -74,6 +90,8 @@ const SEED: StoreShape = {
       tripType: "couples", inviteCode: "CPL-4P-25",
       memberNames: ["You", "Alex", "Jordan", "Taylor"],
       dealIds: ["d-5", "d-9"],
+      destinationIds: ["dst-riviera-maya", "dst-aruba"],
+      destinationVotes: [],
       createdAt: "2026-06-01T00:00:00.000Z",
     },
   ],
@@ -98,12 +116,23 @@ function userKey(uid: string) { return `ais-store:${uid}`; }
 let currentUserId: string | null = null;
 let state: StoreShape = loadInitial();
 
+function normalizeRoom(t: TripRoom): TripRoom {
+  return {
+    ...t,
+    destinationIds: t.destinationIds ?? t.preferredDestinations ?? [],
+    destinationVotes: t.destinationVotes ?? [],
+  };
+}
+function normalizeState(s: StoreShape): StoreShape {
+  return { ...s, tripRooms: s.tripRooms.map(normalizeRoom) };
+}
+
 function loadInitial(): StoreShape {
   if (!isBrowser) return SEED;
   try {
     const raw = localStorage.getItem(ANON_KEY);
     if (!raw) return SEED;
-    return { ...SEED, ...JSON.parse(raw) };
+    return normalizeState({ ...SEED, ...JSON.parse(raw) });
   } catch { return SEED; }
 }
 
@@ -112,7 +141,7 @@ function loadFromStorage(key: string, fallback: StoreShape): StoreShape {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
-    return { ...fallback, ...JSON.parse(raw) };
+    return normalizeState({ ...fallback, ...JSON.parse(raw) });
   } catch { return fallback; }
 }
 
@@ -120,7 +149,7 @@ const listeners = new Set<() => void>();
 function persist() {
   if (isBrowser) {
     const key = currentUserId ? userKey(currentUserId) : ANON_KEY;
-    try { localStorage.setItem(key, JSON.stringify(state)); } catch {}
+    try { localStorage.setItem(key, JSON.stringify(state)); } catch { /* ignore */ }
   }
   listeners.forEach((l) => l());
 }
@@ -131,7 +160,6 @@ export function useStore() { return useSyncExternalStore(subscribe, getSnapshot,
 
 export function getCurrentUserId() { return currentUserId; }
 
-// Called by AppShell on auth state change.
 export async function setCurrentUser(userId: string | null) {
   if (userId === currentUserId) return;
   if (userId === null) {
@@ -140,15 +168,12 @@ export async function setCurrentUser(userId: string | null) {
     persist();
     return;
   }
-  // Switching to a user. Capture any anonymous data first.
   const anon = loadFromStorage(ANON_KEY, EMPTY);
   currentUserId = userId;
-  // Hydrate from user-scoped cache for snappy first paint
   state = loadFromStorage(userKey(userId), EMPTY);
   persist();
 
   try {
-    // Best-effort migration of anon data on first login (idempotent server-side)
     await cloud.migrateLocalToCloud(userId, {
       savedDealIds: anon.savedDealIds,
       watchlists: anon.watchlists,
@@ -156,7 +181,6 @@ export async function setCurrentUser(userId: string | null) {
       votes: anon.votes,
       customDeals: anon.customDeals,
     });
-    // Pull authoritative cloud state
     const cs = await cloud.loadCloudState(userId);
     state = {
       ...state,
@@ -222,15 +246,16 @@ export const storeActions = {
     if (currentUserId) logCloud("delWatchlist", cloud.cloudDeleteWatchlist(id));
   },
   addTripRoom(t: TripRoom) {
-    state = { ...state, tripRooms: [t, ...state.tripRooms] };
+    const room = normalizeRoom(t);
+    state = { ...state, tripRooms: [room, ...state.tripRooms] };
     persist();
     if (currentUserId) {
       const uid = currentUserId;
-      cloud.cloudCreateTripRoom(uid, t).then((cloudId) => {
-        if (cloudId && cloudId !== t.id) {
+      cloud.cloudCreateTripRoom(uid, room).then((cloudId) => {
+        if (cloudId && cloudId !== room.id) {
           state = {
             ...state,
-            tripRooms: state.tripRooms.map((x) => x.id === t.id ? { ...x, id: cloudId, ownerId: uid } : x),
+            tripRooms: state.tripRooms.map((x) => x.id === room.id ? { ...x, id: cloudId, ownerId: uid } : x),
           };
           persist();
         }
@@ -250,6 +275,82 @@ export const storeActions = {
       cloud.cloudAddDealToTripRoom(tripRoomId, dealId, uid)
         .then(() => storeActions.rehydrateTripRooms())
         .catch((e) => console.error("[cloud:addDealToRoom]", e));
+    }
+  },
+  addDestinationToTripRoom(tripRoomId: string, destinationId: string) {
+    state = {
+      ...state,
+      tripRooms: state.tripRooms.map((t) =>
+        t.id === tripRoomId && !t.destinationIds.includes(destinationId)
+          ? { ...t, destinationIds: [...t.destinationIds, destinationId] } : t),
+    };
+    persist();
+    if (currentUserId) {
+      const uid = currentUserId;
+      cloud.cloudAddDestinationToTripRoom(tripRoomId, destinationId, uid)
+        .then(() => storeActions.rehydrateTripRooms())
+        .catch((e) => console.error("[cloud:addDestToRoom]", e));
+    }
+  },
+  removeDestinationFromTripRoom(tripRoomId: string, destinationId: string) {
+    state = {
+      ...state,
+      tripRooms: state.tripRooms.map((t) =>
+        t.id === tripRoomId
+          ? {
+              ...t,
+              destinationIds: t.destinationIds.filter((d) => d !== destinationId),
+              destinationVotes: (t.destinationVotes ?? []).filter((v) => v.destinationId !== destinationId),
+            }
+          : t),
+    };
+    persist();
+    if (currentUserId) {
+      cloud.cloudRemoveDestinationFromTripRoom(tripRoomId, destinationId)
+        .then(() => storeActions.rehydrateTripRooms())
+        .catch((e) => console.error("[cloud:removeDestFromRoom]", e));
+    }
+  },
+  recordDestinationVote(v: DestinationVote) {
+    const myV: DestinationVote = { ...v, userId: currentUserId ?? v.userId };
+    state = {
+      ...state,
+      tripRooms: state.tripRooms.map((t) =>
+        t.id === myV.tripRoomId
+          ? {
+              ...t,
+              destinationVotes: [
+                myV,
+                ...(t.destinationVotes ?? []).filter((x) =>
+                  !(x.destinationId === myV.destinationId && x.userId === myV.userId)),
+              ],
+            }
+          : t),
+    };
+    persist();
+    if (currentUserId) {
+      cloud.cloudRecordDestinationVote(myV)
+        .then(() => storeActions.rehydrateTripRooms())
+        .catch((e) => console.error("[cloud:recordDestVote]", e));
+    }
+  },
+  updateMemberPreferences(tripRoomId: string, prefs: TripRoomMemberPreferences) {
+    const uid = currentUserId;
+    state = {
+      ...state,
+      tripRooms: state.tripRooms.map((t) =>
+        t.id === tripRoomId
+          ? {
+              ...t,
+              members: (t.members ?? []).map((m) =>
+                m.userId === uid ? { ...m, preferences: prefs } : m),
+            }
+          : t),
+    };
+    persist();
+    if (uid) {
+      cloud.cloudSaveMemberPreferences(tripRoomId, uid, prefs)
+        .catch((e) => console.error("[cloud:saveMemberPrefs]", e));
     }
   },
   recordVote(v: DealVote) {
@@ -309,6 +410,8 @@ export const storeActions = {
       tripType: "friends",
       inviteCode: Math.random().toString(36).slice(2, 8).toUpperCase(),
       memberNames: ["You"], dealIds: ["d-3", "d-15"],
+      destinationIds: ["dst-cancun"],
+      destinationVotes: [],
       createdAt: new Date().toISOString(),
     };
     this.addTripRoom(demo);
